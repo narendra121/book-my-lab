@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS ratings;
+
+DROP TABLE IF EXISTS visits;
+
+DROP TABLE IF EXISTS favorites;
+DROP TABLE IF EXISTS property_photos;
+DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS users;
