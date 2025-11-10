@@ -65,12 +65,12 @@ func IsTokenValid(token string, refresh bool) (bool, *model.User, error) {
 	return true, user, nil
 }
 
-func RefreshToken(token string, refresh bool) (string, error) {
+func RefreshToken(token string, exp int64, refresh bool) (string, error) {
 	valid, user, err := IsTokenValid(token, refresh)
 	if err != nil || !valid {
 		return "", fmt.Errorf("invalid token, error: %v", err)
 	}
-	return GetToken(user.Email, user.Salt, 15)
+	return GetToken(user.Email, user.Salt, exp)
 }
 
 func getJwtTokenData(token, salt string) (*jwt.Token, error) {

@@ -5,14 +5,22 @@ import (
 	"fmt"
 	"net/http"
 
-	"booking.com/internal/db/postgresql/dao"
 	"booking.com/internal/dto"
-	jwtauth "booking.com/pkg/auth/jwt-auth"
+	"booking.com/internal/svcs"
 	"booking.com/pkg/constants"
 	"booking.com/pkg/utils"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
+type AuthHandler struct {
+	AuthSvc *svcs.AuthSvc
+}
+
+func NewAuthHandler(authSvc *svcs.AuthSvc) *AuthHandler {
+	return &AuthHandler{
+		AuthSvc: authSvc,
+	}
+}
+func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var reqUser dto.Login
 	err := utils.ParseHttpRequest(r, &reqUser)
 	if err != nil {
@@ -23,20 +31,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "username/password is empty", http.StatusBadRequest)
 		return
 	}
-	q := dao.User
-	users, err := q.Where(q.Email.Eq(reqUser.UserName)).Or(q.Phone.Eq(reqUser.UserName)).Find()
-	if err != nil || len(users) == 0 {
-		http.Error(w, "user not found", http.StatusUnauthorized)
-		return
-	}
-	user := users[0]
-	if validPassword := utils.CheckPassword(user.PasswordHash, reqUser.Password+user.Salt); !validPassword {
-		http.Error(w, "invalid password", http.StatusUnauthorized)
-		return
-	}
-	token, err := jwtauth.GetToken(user.Email, user.Salt, 15)
+	token, err := a.AuthSvc.Login(reqUser)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to generate token, error: %v", err), http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
 		return
 	}
 	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
@@ -47,7 +44,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func Refresh(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	var tokenReq dto.TokenReq
 	err := utils.ParseHttpRequest(r, &tokenReq)
 	if err != nil {
@@ -58,9 +55,9 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "access token is missing", http.StatusBadRequest)
 		return
 	}
-	newToken, err := jwtauth.RefreshToken(tokenReq.AccessToken, true)
+	newToken, err := a.AuthSvc.Refresh(tokenReq)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("token refresh failed: %v", err), http.StatusUnauthorized)
+		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
 		return
 	}
 	w.Header().Set(constants.ContentType, constants.ContentTypeJson)

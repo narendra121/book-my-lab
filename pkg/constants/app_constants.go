@@ -11,9 +11,10 @@ const (
 	StatusAvailable = "available"
 	StatusBooked    = "booked"
 
-	Expiry      = "expiry"
-	UserName    = "username"
-	Bearer      = "Bearer"
-	AccessToken = "access_token"
-	TokenType   = "token_type"
+	Expiry        = "expiry"
+	UserName      = "username"
+	Bearer        = "Bearer "
+	AccessToken   = "access_token"
+	TokenType     = "token_type"
+	Authorization = "Authorization"
 )

@@ -21,7 +21,7 @@ func main() {
 		return
 	}
 	dao.SetDefault(db)
-	if err := server.StartHttpTlsServer(cfg.HttpServer); err != nil {
+	if err := server.StartHttpTlsServer(cfg); err != nil {
 		log.Printf("server failed, error: %v", err)
 	}
 }
