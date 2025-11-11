@@ -55,7 +55,7 @@ func registerUsersApp(mux *http.ServeMux, cfg *config.AppConfig) {
 	usrHandler := users.NewUserHandler(&svcs.UserSvc{AppCfg: cfg})
 
 	mux.HandleFunc("/users/register", commonMiddleWare(usrHandler.Add, false, http.MethodPost))
-	mux.HandleFunc("/users/update", commonMiddleWare(usrHandler.Put, true, http.MethodPost))
+	mux.HandleFunc("/users/update", commonMiddleWare(usrHandler.Put, true, http.MethodPut))
 }
 func registerAuthApp(mux *http.ServeMux, cfg *config.AppConfig) {
 	authHandler := auth.NewAuthHandler(&svcs.AuthSvc{AppCfg: cfg})

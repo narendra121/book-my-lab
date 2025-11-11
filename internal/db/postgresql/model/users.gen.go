@@ -12,18 +12,24 @@ const TableNameUser = "users"
 
 // User mapped from table <users>
 type User struct {
-	ID            int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	FirstName     string    `gorm:"column:first_name;type:character varying(100);not null" json:"first_name"`
-	LastName      string    `gorm:"column:last_name;type:character varying(100);not null" json:"last_name"`
-	Email         string    `gorm:"column:email;type:character varying(100);not null" json:"email"`
-	Phone         string    `gorm:"column:phone;type:character varying(20)" json:"phone"`
-	RefreshToken  string    `gorm:"column:refresh_token;type:character varying(255)" json:"refresh_token"`
-	PasswordHash  string    `gorm:"column:password_hash;type:character varying(255);not null" json:"password_hash"`
-	Salt          string    `gorm:"column:salt;type:character varying(100);not null" json:"salt"`
-	ProfilePicURL string    `gorm:"column:profile_pic_url;type:text" json:"profile_pic_url"`
-	Address       string    `gorm:"column:address;type:character varying(255);not null" json:"address"`
-	CreatedAt     time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt     time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID              int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
+	FirstName       string    `gorm:"column:first_name;type:character varying(100);not null" json:"first_name"`
+	LastName        string    `gorm:"column:last_name;type:character varying(100);not null" json:"last_name"`
+	Email           string    `gorm:"column:email;type:character varying(100);not null" json:"email"`
+	EmailOtp        string    `gorm:"column:email_otp;type:character varying(10)" json:"email_otp"`
+	EmailOtpExpires time.Time `gorm:"column:email_otp_expires;type:timestamp without time zone" json:"email_otp_expires"`
+	IsEmailVerified bool      `gorm:"column:is_email_verified;type:boolean" json:"is_email_verified"`
+	Phone           string    `gorm:"column:phone;type:character varying(20)" json:"phone"`
+	PhoneOtp        string    `gorm:"column:phone_otp;type:character varying(10)" json:"phone_otp"`
+	PhoneOtpExpires time.Time `gorm:"column:phone_otp_expires;type:timestamp without time zone" json:"phone_otp_expires"`
+	IsPhoneVerified bool      `gorm:"column:is_phone_verified;type:boolean" json:"is_phone_verified"`
+	RefreshToken    string    `gorm:"column:refresh_token;type:character varying(255)" json:"refresh_token"`
+	PasswordHash    string    `gorm:"column:password_hash;type:character varying(255);not null" json:"password_hash"`
+	Salt            string    `gorm:"column:salt;type:character varying(100);not null" json:"salt"`
+	ProfilePicURL   string    `gorm:"column:profile_pic_url;type:text" json:"profile_pic_url"`
+	Address         string    `gorm:"column:address;type:character varying(255);not null" json:"address"`
+	CreatedAt       time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // TableName User's table name

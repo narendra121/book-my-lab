@@ -37,14 +37,12 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
+		Name:     constants.RefreshToken,
 		Value:    refreshToken,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",
 	})
-	fmt.Println("Set-Cookie header:", w.Header().Get("Set-Cookie"))
-
 	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -54,7 +52,7 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("refresh_token")
+	cookie, err := r.Cookie(constants.RefreshToken)
 	if err != nil {
 		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
@@ -70,7 +68,7 @@ func (a *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
+		Name:     constants.RefreshToken,
 		Value:    newRefreshToken,
 		HttpOnly: true,
 		Secure:   false,

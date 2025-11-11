@@ -17,4 +17,5 @@ const (
 	AccessToken   = "access_token"
 	TokenType     = "token_type"
 	Authorization = "Authorization"
+	RefreshToken  = "refresh_token"
 )
