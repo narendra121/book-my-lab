@@ -17,7 +17,7 @@ type User struct {
 	LastName      string    `gorm:"column:last_name;type:character varying(100);not null" json:"last_name"`
 	Email         string    `gorm:"column:email;type:character varying(100);not null" json:"email"`
 	Phone         string    `gorm:"column:phone;type:character varying(20)" json:"phone"`
-	Password      string    `gorm:"column:password;type:character varying(255)" json:"password"`
+	RefreshToken  string    `gorm:"column:refresh_token;type:character varying(255)" json:"refresh_token"`
 	PasswordHash  string    `gorm:"column:password_hash;type:character varying(255);not null" json:"password_hash"`
 	Salt          string    `gorm:"column:salt;type:character varying(100);not null" json:"salt"`
 	ProfilePicURL string    `gorm:"column:profile_pic_url;type:text" json:"profile_pic_url"`

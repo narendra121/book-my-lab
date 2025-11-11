@@ -31,11 +31,20 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "username/password is empty", http.StatusBadRequest)
 		return
 	}
-	token, err := a.AuthSvc.Login(reqUser)
+	token, refreshToken, err := a.AuthSvc.Login(reqUser)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
 		return
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Secure:   false,
+		Path:     "/",
+	})
+	fmt.Println("Set-Cookie header:", w.Header().Get("Set-Cookie"))
+
 	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
@@ -45,21 +54,28 @@ func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
-	var tokenReq dto.TokenReq
-	err := utils.ParseHttpRequest(r, &tokenReq)
+	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid reqBody, error: %v", err), http.StatusBadRequest)
+		http.Error(w, "missing refresh token", http.StatusUnauthorized)
 		return
 	}
-	if tokenReq.AccessToken == "" {
+	refreshToken := cookie.Value
+	if refreshToken == "" {
 		http.Error(w, "access token is missing", http.StatusBadRequest)
 		return
 	}
-	newToken, err := a.AuthSvc.Refresh(tokenReq)
+	newToken, newRefreshToken, err := a.AuthSvc.Refresh(refreshToken)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
 		return
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		HttpOnly: true,
+		Secure:   false,
+		Path:     "/",
+	})
 	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{

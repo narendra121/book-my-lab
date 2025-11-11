@@ -77,7 +77,6 @@ Usage examples:
 		}
 		fmt.Println(m.Version())
 		fmt.Println("🚀 Running migrations...")
-
 		switch direction {
 		case "down":
 			if err := m.Down(); err != nil && err != migrate.ErrNoChange {

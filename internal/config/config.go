@@ -30,7 +30,8 @@ type Server struct {
 }
 
 type Jwt struct {
-	Expiry int64 `split_words:"true" default:"15"` //min
+	AccessTokenExpiry  int64 `split_words:"true" default:"15"` //min
+	RefreshTokenExpiry int64 `split_words:"true" default:"60"`
 }
 
 func LoadAppConfig() (*AppConfig, error) {

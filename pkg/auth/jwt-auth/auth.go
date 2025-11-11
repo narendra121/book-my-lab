@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"booking.com/internal/db/postgresql/dao"
-	"booking.com/internal/db/postgresql/model"
 	"booking.com/pkg/constants"
 	"booking.com/pkg/utils"
 	"github.com/golang-jwt/jwt"
@@ -27,52 +25,48 @@ func GetToken(userName, salt string, exp int64) (string, error) {
 }
 
 // IsTokenValid validates a JWT and checks user + expiry
-func IsTokenValid(token string, refresh bool) (bool, *model.User, error) {
-	tempToken, _, _ := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
-	claims := getJwtClaims(tempToken)
-	if claims == nil {
-		return false, nil, errors.New("invalid token structure")
+func IsTokenValid(token, salt string, validate func(...string) bool) (bool, error) {
+	jwtToken, err := getJwtTokenData(token, salt)
+	if err != nil || !jwtToken.Valid {
+		return false, fmt.Errorf("invalid token: %v", err)
 	}
-
+	claims := getJwtClaims(jwtToken)
+	if claims == nil {
+		return false, errors.New("invalid token claims")
+	}
 	userName, ok := claims[constants.UserName].(string)
 	if !ok {
-		return false, nil, errors.New("username missing in claims")
+		return false, errors.New("username missing in claims")
 	}
-
-	q := dao.User
-	user, _ := q.Where(q.Email.Eq(userName)).Or(q.Phone.Eq(userName)).First()
-	if user == nil {
-		return false, nil, errors.New("invalid user")
-	}
-	jwtToken, err := getJwtTokenData(token, user.Salt)
-	if err != nil || !jwtToken.Valid {
-		return false, nil, fmt.Errorf("invalid token: %v", err)
-	}
-	if !refresh {
-		claims := getJwtClaims(jwtToken)
-		if claims == nil {
-			return false, nil, errors.New("invalid token claims")
-		}
-		exp, ok := claims[constants.Expiry].(float64)
-		if !ok {
-			return false, nil, errors.New("invalid expiry claim type")
-		}
-		if utils.IsExpired(int64(exp)) {
-			return false, nil, errors.New("token expired")
+	if validate != nil {
+		if !validate(userName) {
+			return false, errors.New("failed custom validation of tokenr")
 		}
 	}
-
-	return true, user, nil
+	exp, ok := claims[constants.Expiry].(float64)
+	if !ok {
+		return false, errors.New("invalid expiry claim type")
+	}
+	if utils.IsExpired(int64(exp)) {
+		return false, errors.New("token expired")
+	}
+	return true, nil
 }
-
-func RefreshToken(token string, exp int64, refresh bool) (string, error) {
-	valid, user, err := IsTokenValid(token, refresh)
-	if err != nil || !valid {
-		return "", fmt.Errorf("invalid token, error: %v", err)
+func GetUnVerifiedJwtClaims(token, claimKey string) (string, error) {
+	jwtToken, _, _ := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
+	if jwtToken == nil {
+		return "", fmt.Errorf("invalid token structure")
 	}
-	return GetToken(user.Email, user.Salt, exp)
+	claims := getJwtClaims(jwtToken)
+	if claims == nil {
+		return "", fmt.Errorf("invalid token structure")
+	}
+	val, ok := claims[claimKey]
+	if !ok || val == "" {
+		return "", fmt.Errorf("claim not found")
+	}
+	return val.(string), nil
 }
-
 func getJwtTokenData(token, salt string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {

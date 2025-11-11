@@ -32,7 +32,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.LastName = field.NewString(tableName, "last_name")
 	_user.Email = field.NewString(tableName, "email")
 	_user.Phone = field.NewString(tableName, "phone")
-	_user.Password = field.NewString(tableName, "password")
+	_user.RefreshToken = field.NewString(tableName, "refresh_token")
 	_user.PasswordHash = field.NewString(tableName, "password_hash")
 	_user.Salt = field.NewString(tableName, "salt")
 	_user.ProfilePicURL = field.NewString(tableName, "profile_pic_url")
@@ -54,7 +54,7 @@ type user struct {
 	LastName      field.String
 	Email         field.String
 	Phone         field.String
-	Password      field.String
+	RefreshToken  field.String
 	PasswordHash  field.String
 	Salt          field.String
 	ProfilePicURL field.String
@@ -82,7 +82,7 @@ func (u *user) updateTableName(table string) *user {
 	u.LastName = field.NewString(table, "last_name")
 	u.Email = field.NewString(table, "email")
 	u.Phone = field.NewString(table, "phone")
-	u.Password = field.NewString(table, "password")
+	u.RefreshToken = field.NewString(table, "refresh_token")
 	u.PasswordHash = field.NewString(table, "password_hash")
 	u.Salt = field.NewString(table, "salt")
 	u.ProfilePicURL = field.NewString(table, "profile_pic_url")
@@ -111,7 +111,7 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["last_name"] = u.LastName
 	u.fieldMap["email"] = u.Email
 	u.fieldMap["phone"] = u.Phone
-	u.fieldMap["password"] = u.Password
+	u.fieldMap["refresh_token"] = u.RefreshToken
 	u.fieldMap["password_hash"] = u.PasswordHash
 	u.fieldMap["salt"] = u.Salt
 	u.fieldMap["profile_pic_url"] = u.ProfilePicURL

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"booking.com/internal/config"
+	"booking.com/internal/db/postgresql/dao"
 	"booking.com/internal/handlers/auth"
 	"booking.com/internal/handlers/users"
 	"booking.com/internal/svcs"
@@ -53,7 +54,7 @@ func health(w http.ResponseWriter, r *http.Request) {
 func registerUsersApp(mux *http.ServeMux, cfg *config.AppConfig) {
 	usrHandler := users.NewUserHandler(&svcs.UserSvc{AppCfg: cfg})
 
-	mux.HandleFunc("/users/register", commonMiddleWare(usrHandler.Add, true, http.MethodPost))
+	mux.HandleFunc("/users/register", commonMiddleWare(usrHandler.Add, false, http.MethodPost))
 	mux.HandleFunc("/users/update", commonMiddleWare(usrHandler.Put, true, http.MethodPost))
 }
 func registerAuthApp(mux *http.ServeMux, cfg *config.AppConfig) {
@@ -79,14 +80,24 @@ func commonMiddleWare(handler http.HandlerFunc, authNeeded bool, methods ...stri
 				return
 			}
 			token := authHeader[len(constants.Bearer):]
-			fmt.Println("==========", token)
 			if token == "" {
 				http.Error(w, "token not provided", http.StatusUnauthorized)
 				return
 			}
-			_, _, err := jwtauth.IsTokenValid(token, false)
-			if err != nil {
+			userName, err := jwtauth.GetUnVerifiedJwtClaims(token, constants.UserName)
+			if err != nil || userName == "" {
 				http.Error(w, fmt.Sprintf("failed validate token, error: %v", err), http.StatusUnauthorized)
+				return
+			}
+			q := dao.User
+			user, _ := q.Where(q.Email.Eq(userName)).Or(q.Phone.Eq(userName)).First()
+			if user == nil {
+				http.Error(w, fmt.Sprintf("failed validate token, error: %v", err), http.StatusUnauthorized)
+				return
+			}
+			validToken, err := jwtauth.IsTokenValid(token, user.Salt, nil)
+			if err != nil || !validToken {
+				http.Error(w, "invalid token", http.StatusUnauthorized)
 				return
 			}
 		}
