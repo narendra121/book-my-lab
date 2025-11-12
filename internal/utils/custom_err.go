@@ -6,4 +6,6 @@ var (
 	ErrUserAlreadyExists    = errors.New("user already exists")
 	ErrUserAlreadyLoggedOut = errors.New("user already logged Out")
 	ErrUserNotFound         = errors.New("user not found")
+	ErrUserAlreadyDeleted   = errors.New("user already deleted")
+	ErrInvalidUserOrPass    = errors.New("invalid username or password")
 )

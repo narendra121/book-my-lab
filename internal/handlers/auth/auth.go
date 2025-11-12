@@ -10,6 +10,7 @@ import (
 	jwtauth "booking.com/pkg/auth/jwt-auth"
 	"booking.com/pkg/constants"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type AuthHandler struct {
@@ -52,6 +53,10 @@ func (a *AuthHandler) Login(c *gin.Context) {
 	}
 	token, refreshToken, err := a.AuthSvc.Login(reqUser, a.UsrSvc)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
 	}
@@ -90,6 +95,10 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 
 	newToken, newRefreshToken, err := a.AuthSvc.Refresh(userName, refreshToken, a.UsrSvc)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
 	}
@@ -131,6 +140,10 @@ func (a *AuthHandler) LogOut(c *gin.Context) {
 			return
 		}
 		if errors.Is(err, utils.ErrUserNotFound) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
+			return
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
 			return
 		}

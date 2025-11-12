@@ -1,12 +1,10 @@
 package svcs
 
 import (
-	"errors"
-	"fmt"
-
 	"booking.com/internal/config"
 	"booking.com/internal/db/postgresql/dao"
 	"booking.com/internal/db/postgresql/model"
+	"booking.com/internal/utils"
 )
 
 type UserSvc struct {
@@ -67,7 +65,7 @@ func (u *UserSvc) DelUser(userName string) error {
 		return err
 	}
 	if user == nil {
-		return errors.New("user already deleted")
+		return utils.ErrUserAlreadyDeleted
 	}
 	_, err = usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).
 		Updates(&model.User{Deleted: true})
@@ -80,14 +78,14 @@ func (u *UserSvc) DelUser(userName string) error {
 func (u *UserSvc) UpdateRefreshToken(userName, refreshToken string) error {
 	usr := dao.User
 	if _, err := usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Select(usr.RefreshToken).Updates(&model.User{RefreshToken: refreshToken}); err != nil {
-		return fmt.Errorf("failed to logged out, error:%v", err)
+		return err
 	}
 	return nil
 }
 func (u *UserSvc) UpdateDelFlag(userName string, delFlag bool) error {
 	usr := dao.User
 	if _, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Select(usr.Deleted).Updates(&model.User{Deleted: delFlag}); err != nil {
-		return fmt.Errorf("failed to logged out, error:%v", err)
+		return err
 	}
 	return nil
 }

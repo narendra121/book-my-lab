@@ -66,10 +66,10 @@ func (a *AuthSvc) Login(reqUser dto.Login, userSvc *UserSvc) (string, string, er
 		return "", "", err
 	}
 	if user == nil {
-		return "", "", errors.New("user not found")
+		return "", "", utils.ErrUserNotFound
 	}
 	if validPassword := utils.CheckPassword(user.PasswordHash, reqUser.Password+user.Salt); !validPassword {
-		return "", "", errors.New("invalid password")
+		return "", "", utils.ErrInvalidUserOrPass
 	}
 	return a.getAccessAndRefreshTokens(user, userSvc)
 }
@@ -85,7 +85,7 @@ func (a *AuthSvc) Refresh(userName, refreshToken string, userSvc *UserSvc) (stri
 		return "", "", err
 	}
 	if user == nil {
-		return "", "", errors.New("invalid refresh token")
+		return "", "", utils.ErrUserNotFound
 	}
 	validRefreshToken, err := jwtauth.IsTokenValid(refreshToken, user.Salt, validateFunc)
 	if err != nil {
@@ -95,7 +95,7 @@ func (a *AuthSvc) Refresh(userName, refreshToken string, userSvc *UserSvc) (stri
 		return "", "", errors.New("invalid refresh_token")
 	}
 	hash := sha256.Sum256([]byte(refreshToken))
-	if user == nil || user.RefreshToken != hex.EncodeToString(hash[:]) {
+	if user.RefreshToken != hex.EncodeToString(hash[:]) {
 		return "", "", fmt.Errorf("refresh_token revoked")
 	}
 	return a.getAccessAndRefreshTokens(user, userSvc)
@@ -120,16 +120,16 @@ func (a *AuthSvc) LogOut(userName string, usrSvc *UserSvc) error {
 func (a *AuthSvc) getAccessAndRefreshTokens(user *model.User, userSvc *UserSvc) (string, string, error) {
 	token, err := jwtauth.GetToken(user.Email, user.Salt, a.AppCfg.Jwt.AccessTokenExpiry)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to generate token, error: %v", err)
+		return "", "", err
 	}
 	refreshToken, err := jwtauth.GetToken(user.Email, user.Salt, a.AppCfg.Jwt.RefreshTokenExpiry)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to generate token, error: %v", err)
+		return "", "", err
 	}
 	hash := sha256.Sum256([]byte(refreshToken))
 	err = userSvc.UpdateRefreshToken(user.Email, hex.EncodeToString(hash[:]))
 	if err != nil {
-		return "", "", fmt.Errorf("failed to store refresh_token, error: %v", err)
+		return "", "", err
 	}
 	return token, refreshToken, nil
 }

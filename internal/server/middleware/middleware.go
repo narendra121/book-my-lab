@@ -68,7 +68,7 @@ func AuthMiddleWare() gin.HandlerFunc {
 			return
 		}
 		if user == nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", errors.New("user not found"), nil))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
 			return
 		}
 		validToken, err := jwtauth.IsTokenValid(token, user.Salt, nil)
