@@ -13,7 +13,7 @@ const TableNameProperty = "properties"
 // Property mapped from table <properties>
 type Property struct {
 	ID           int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PartnerID    int64     `gorm:"column:partner_id;type:bigint;not null" json:"partner_id"`
+	PartnerEmail string    `gorm:"column:partner_email;type:character varying(100);not null" json:"partner_email"`
 	Title        string    `gorm:"column:title;type:character varying(200);not null" json:"title"`
 	Description  string    `gorm:"column:description;type:text" json:"description"`
 	PropertyType string    `gorm:"column:property_type;type:property_type_enum;not null" json:"property_type"`

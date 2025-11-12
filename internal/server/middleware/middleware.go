@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"booking.com/internal/db/postgresql/dao"
+	"booking.com/internal/svcs"
 	"booking.com/internal/utils"
 	jwtauth "booking.com/pkg/auth/jwt-auth"
 	"booking.com/pkg/constants"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func Health(c *gin.Context) {
@@ -56,9 +57,13 @@ func AuthMiddleWare() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", errors.New("invalid token claims"), nil))
 			return
 		}
-		q := dao.User
-		user, err := q.Where(q.Email.Eq(userName)).Or(q.Phone.Eq(userName)).Where(q.Deleted.Is(false)).First()
+		usrSvc := &svcs.UserSvc{}
+		user, err := usrSvc.GetUserWithDelFlag(userName)
 		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
+				return
+			}
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 			return
 		}
@@ -73,6 +78,7 @@ func AuthMiddleWare() gin.HandlerFunc {
 		}
 		c.Set(constants.CurrentUser, user)
 		c.Set(constants.Role, user.Role)
+		c.Set(constants.CurrentUserName, userName)
 		c.Next()
 	}
 }

@@ -13,7 +13,7 @@ const TableNamePropertyPhoto = "property_photos"
 // PropertyPhoto mapped from table <property_photos>
 type PropertyPhoto struct {
 	ID         int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PropertyID int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
+	PropertyID int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
 	ImageURL   string    `gorm:"column:image_url;type:text;not null" json:"image_url"`
 	IsPrimary  bool      `gorm:"column:is_primary;type:boolean" json:"is_primary"`
 	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`

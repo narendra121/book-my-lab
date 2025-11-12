@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"booking.com/internal/config"
 	"booking.com/internal/db/postgresql/dao"
@@ -49,13 +50,10 @@ var migrateCmd = &cobra.Command{
 Usage examples:
   bookmylab migrate up
   bookmylab migrate down
-  bookmylab migrate up internal/db/migrations`,
+  bookmylab migrate up <version>`,
 	Run: func(cmd *cobra.Command, args []string) {
 		direction := args[0]
 		path := "internal/db/migrations"
-		if len(args) == 2 {
-			path = args[1]
-		}
 
 		sqlDB, err := db.DB()
 		if err != nil {
@@ -75,8 +73,15 @@ Usage examples:
 		if err != nil {
 			log.Fatalf("failed to create migrate instance: %v", err)
 		}
-		fmt.Println(m.Version())
 		fmt.Println("🚀 Running migrations...")
+		if len(args) == 2 {
+			version, err := strconv.Atoi(args[1])
+			if err != nil {
+				log.Fatalf("failed to force migrate instance: %v", err)
+				return
+			}
+			m.Force(version)
+		}
 		switch direction {
 		case "down":
 			if err := m.Down(); err != nil && err != migrate.ErrNoChange {

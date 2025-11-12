@@ -28,8 +28,8 @@ func newVisit(db *gorm.DB, opts ...gen.DOOption) visit {
 	tableName := _visit.visitDo.TableName()
 	_visit.ALL = field.NewAsterisk(tableName)
 	_visit.ID = field.NewInt32(tableName, "id")
-	_visit.PropertyID = field.NewInt64(tableName, "property_id")
-	_visit.BuyerID = field.NewInt64(tableName, "buyer_id")
+	_visit.PropertyID = field.NewInt32(tableName, "property_id")
+	_visit.BuyerEmail = field.NewString(tableName, "buyer_email")
 	_visit.ScheduledTime = field.NewTime(tableName, "scheduled_time")
 	_visit.Status = field.NewString(tableName, "status")
 	_visit.RescheduleTime = field.NewTime(tableName, "reschedule_time")
@@ -48,8 +48,8 @@ type visit struct {
 
 	ALL            field.Asterisk
 	ID             field.Int32
-	PropertyID     field.Int64
-	BuyerID        field.Int64
+	PropertyID     field.Int32
+	BuyerEmail     field.String
 	ScheduledTime  field.Time
 	Status         field.String
 	RescheduleTime field.Time
@@ -74,8 +74,8 @@ func (v visit) As(alias string) *visit {
 func (v *visit) updateTableName(table string) *visit {
 	v.ALL = field.NewAsterisk(table)
 	v.ID = field.NewInt32(table, "id")
-	v.PropertyID = field.NewInt64(table, "property_id")
-	v.BuyerID = field.NewInt64(table, "buyer_id")
+	v.PropertyID = field.NewInt32(table, "property_id")
+	v.BuyerEmail = field.NewString(table, "buyer_email")
 	v.ScheduledTime = field.NewTime(table, "scheduled_time")
 	v.Status = field.NewString(table, "status")
 	v.RescheduleTime = field.NewTime(table, "reschedule_time")
@@ -102,7 +102,7 @@ func (v *visit) fillFieldMap() {
 	v.fieldMap = make(map[string]field.Expr, 10)
 	v.fieldMap["id"] = v.ID
 	v.fieldMap["property_id"] = v.PropertyID
-	v.fieldMap["buyer_id"] = v.BuyerID
+	v.fieldMap["buyer_email"] = v.BuyerEmail
 	v.fieldMap["scheduled_time"] = v.ScheduledTime
 	v.fieldMap["status"] = v.Status
 	v.fieldMap["reschedule_time"] = v.RescheduleTime

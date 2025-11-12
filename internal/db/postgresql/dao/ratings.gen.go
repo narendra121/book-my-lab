@@ -28,8 +28,8 @@ func newRating(db *gorm.DB, opts ...gen.DOOption) rating {
 	tableName := _rating.ratingDo.TableName()
 	_rating.ALL = field.NewAsterisk(tableName)
 	_rating.ID = field.NewInt32(tableName, "id")
-	_rating.PropertyID = field.NewInt64(tableName, "property_id")
-	_rating.BuyerID = field.NewInt64(tableName, "buyer_id")
+	_rating.PropertyID = field.NewInt32(tableName, "property_id")
+	_rating.BuyerEmail = field.NewString(tableName, "buyer_email")
 	_rating.Rating = field.NewInt32(tableName, "rating")
 	_rating.ReviewText = field.NewString(tableName, "review_text")
 	_rating.CreatedAt = field.NewTime(tableName, "created_at")
@@ -44,8 +44,8 @@ type rating struct {
 
 	ALL        field.Asterisk
 	ID         field.Int32
-	PropertyID field.Int64
-	BuyerID    field.Int64
+	PropertyID field.Int32
+	BuyerEmail field.String
 	Rating     field.Int32
 	ReviewText field.String
 	CreatedAt  field.Time
@@ -66,8 +66,8 @@ func (r rating) As(alias string) *rating {
 func (r *rating) updateTableName(table string) *rating {
 	r.ALL = field.NewAsterisk(table)
 	r.ID = field.NewInt32(table, "id")
-	r.PropertyID = field.NewInt64(table, "property_id")
-	r.BuyerID = field.NewInt64(table, "buyer_id")
+	r.PropertyID = field.NewInt32(table, "property_id")
+	r.BuyerEmail = field.NewString(table, "buyer_email")
 	r.Rating = field.NewInt32(table, "rating")
 	r.ReviewText = field.NewString(table, "review_text")
 	r.CreatedAt = field.NewTime(table, "created_at")
@@ -90,7 +90,7 @@ func (r *rating) fillFieldMap() {
 	r.fieldMap = make(map[string]field.Expr, 6)
 	r.fieldMap["id"] = r.ID
 	r.fieldMap["property_id"] = r.PropertyID
-	r.fieldMap["buyer_id"] = r.BuyerID
+	r.fieldMap["buyer_email"] = r.BuyerEmail
 	r.fieldMap["rating"] = r.Rating
 	r.fieldMap["review_text"] = r.ReviewText
 	r.fieldMap["created_at"] = r.CreatedAt

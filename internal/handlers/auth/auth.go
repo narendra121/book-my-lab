@@ -7,19 +7,39 @@ import (
 	"booking.com/internal/dto"
 	"booking.com/internal/svcs"
 	"booking.com/internal/utils"
+	jwtauth "booking.com/pkg/auth/jwt-auth"
 	"booking.com/pkg/constants"
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
 	AuthSvc *svcs.AuthSvc
+	UsrSvc  *svcs.UserSvc
 }
 
-func NewAuthHandler(authSvc *svcs.AuthSvc) *AuthHandler {
+func NewAuthHandler(authSvc *svcs.AuthSvc, usrSvc *svcs.UserSvc) *AuthHandler {
 	return &AuthHandler{
 		AuthSvc: authSvc,
+		UsrSvc:  usrSvc,
 	}
 }
+func (a *AuthHandler) Register(c *gin.Context) {
+	var userReq dto.CreateUser
+	if err := c.ShouldBindBodyWithJSON(&userReq); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if err := a.AuthSvc.RegisterUser(&userReq, a.UsrSvc); err != nil {
+		if errors.Is(err, utils.ErrUserAlreadyExists) {
+			c.AbortWithStatusJSON(http.StatusOK, utils.WriteAppResponse("", utils.ErrUserAlreadyExists, nil))
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	c.JSON(http.StatusCreated, utils.WriteAppResponse("user registered successfully.", nil, nil))
+}
+
 func (a *AuthHandler) Login(c *gin.Context) {
 	var reqUser dto.Login
 	if err := c.ShouldBindBodyWithJSON(&reqUser); err != nil {
@@ -30,7 +50,7 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("username or password is empty"), nil))
 		return
 	}
-	token, refreshToken, err := a.AuthSvc.Login(reqUser)
+	token, refreshToken, err := a.AuthSvc.Login(reqUser, a.UsrSvc)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
@@ -58,7 +78,17 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("missing refresh token"), nil))
 		return
 	}
-	newToken, newRefreshToken, err := a.AuthSvc.Refresh(refreshToken)
+	userName, err := jwtauth.GetUnVerifiedJwtClaims(refreshToken, constants.UserName)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadGateway, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if userName == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("invalid refresh token", nil, nil))
+		return
+	}
+
+	newToken, newRefreshToken, err := a.AuthSvc.Refresh(userName, refreshToken, a.UsrSvc)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
@@ -82,11 +112,28 @@ func (a *AuthHandler) LogOut(c *gin.Context) {
 		return
 	}
 	if refreshToken == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("missing refresh token"), nil))
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("missing refresh_token"), nil))
 		return
 	}
-	err = a.AuthSvc.LogOut(refreshToken)
+
+	userName, err := jwtauth.GetUnVerifiedJwtClaims(refreshToken, constants.UserName)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if userName == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid token data"), nil))
+		return
+	}
+	if err := a.AuthSvc.LogOut(userName, a.UsrSvc); err != nil {
+		if errors.Is(err, utils.ErrUserAlreadyLoggedOut) {
+			c.AbortWithStatusJSON(http.StatusOK, utils.WriteAppResponse("", utils.ErrUserAlreadyLoggedOut, nil))
+			return
+		}
+		if errors.Is(err, utils.ErrUserNotFound) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
+			return
+		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
 		return
 	}

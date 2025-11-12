@@ -27,6 +27,7 @@ type Server struct {
 	CertPath   string `split_words:"true" required:"true"`
 	KeyPath    string `split_words:"true" required:"true"`
 	CaCertPath string `split_words:"true" required:"true"`
+	Mode       string `split_words:"true" default:"release"`
 }
 
 type Jwt struct {

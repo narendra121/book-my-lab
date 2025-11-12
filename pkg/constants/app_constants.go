@@ -26,6 +26,7 @@ const (
 	PartnerRole = "partner"
 	AdminRole   = "admin"
 
-	CurrentUser = "curr_user"
-	Role        = "role"
+	CurrentUser     = "curr_user"
+	Role            = "role"
+	CurrentUserName = "curr_username"
 )

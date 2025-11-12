@@ -13,8 +13,8 @@ const TableNameRating = "ratings"
 // Rating mapped from table <ratings>
 type Rating struct {
 	ID         int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PropertyID int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
-	BuyerID    int64     `gorm:"column:buyer_id;type:bigint;not null" json:"buyer_id"`
+	PropertyID int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
+	BuyerEmail string    `gorm:"column:buyer_email;type:character varying(100);not null" json:"buyer_email"`
 	Rating     int32     `gorm:"column:rating;type:integer" json:"rating"`
 	ReviewText string    `gorm:"column:review_text;type:text" json:"review_text"`
 	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`

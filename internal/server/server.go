@@ -1,8 +1,6 @@
 package server
 
 import (
-	"log"
-
 	"booking.com/internal/config"
 	"booking.com/internal/handlers/auth"
 	"booking.com/internal/handlers/user"
@@ -12,7 +10,10 @@ import (
 )
 
 func StartHttpTlsServer(cfg *config.AppConfig) error {
+	gin.SetMode(cfg.HttpServer.Mode)
+
 	router := gin.New()
+
 	router.Use(middleware.CommonChain()...)
 
 	router.GET("/health", middleware.Health)
@@ -28,7 +29,7 @@ func StartHttpTlsServer(cfg *config.AppConfig) error {
 
 		registerUsersAppWithAuth(v1Auth, cfg)
 	}
-	log.Printf("Server started on https://%v", cfg.HttpServer.Address)
+
 	if err := router.Run(cfg.HttpServer.Address); err != nil {
 		return err
 	}
@@ -38,16 +39,17 @@ func StartHttpTlsServer(cfg *config.AppConfig) error {
 func registerUsersAppWithAuth(router *gin.RouterGroup, cfg *config.AppConfig) {
 	usrHandler := user.NewUserHandler(&svcs.UserSvc{AppCfg: cfg})
 
-	router.POST("/user/register", usrHandler.Add)
-	router.GET("/user/profile/:username", usrHandler.Get)
-	router.PUT("/user/update", usrHandler.Put)
-	router.GET("/user/list", usrHandler.GetAll)
+	router.GET("/user/profile", usrHandler.GetProfile)
+	router.PUT("/user/update", usrHandler.UpdateUser)
+	router.GET("/user/list", usrHandler.ListUsers)
 	router.PUT("/user/update-role", usrHandler.UpdateRole)
+	router.DELETE("/user/profile", usrHandler.DeleteUser)
 }
 
 func registerAuthAppNoAuth(router *gin.RouterGroup, cfg *config.AppConfig) {
-	authHandler := auth.NewAuthHandler(&svcs.AuthSvc{AppCfg: cfg})
+	authHandler := auth.NewAuthHandler(&svcs.AuthSvc{AppCfg: cfg}, &svcs.UserSvc{AppCfg: cfg})
 
+	router.POST("/auth/register", authHandler.Register)
 	router.POST("/auth/login", authHandler.Login)
 	router.POST("/auth/refresh", authHandler.Refresh)
 	router.POST("/auth/logout", authHandler.LogOut)

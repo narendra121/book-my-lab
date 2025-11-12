@@ -13,8 +13,8 @@ const TableNameVisit = "visits"
 // Visit mapped from table <visits>
 type Visit struct {
 	ID             int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PropertyID     int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
-	BuyerID        int64     `gorm:"column:buyer_id;type:bigint;not null" json:"buyer_id"`
+	PropertyID     int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
+	BuyerEmail     string    `gorm:"column:buyer_email;type:character varying(100);not null" json:"buyer_email"`
 	ScheduledTime  time.Time `gorm:"column:scheduled_time;type:timestamp without time zone;not null" json:"scheduled_time"`
 	Status         string    `gorm:"column:status;type:visit_status_enum;default:PENDING" json:"status"`
 	RescheduleTime time.Time `gorm:"column:reschedule_time;type:timestamp without time zone" json:"reschedule_time"`

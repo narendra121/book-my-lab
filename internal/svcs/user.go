@@ -1,15 +1,12 @@
 package svcs
 
 import (
+	"errors"
 	"fmt"
-	"time"
 
 	"booking.com/internal/config"
 	"booking.com/internal/db/postgresql/dao"
 	"booking.com/internal/db/postgresql/model"
-	"booking.com/internal/dto"
-	"booking.com/internal/utils"
-	"booking.com/pkg/constants"
 )
 
 type UserSvc struct {
@@ -19,65 +16,78 @@ type UserSvc struct {
 func NewUserSvc(cfg *config.AppConfig) *UserSvc {
 	return &UserSvc{AppCfg: cfg}
 }
-
-func (u *UserSvc) CreateUser(user *dto.CreateUser) error {
-	salt := utils.GetUUID()
-	hashedPass, err := utils.HashPassword(user.Password + salt)
-	if err != nil {
-		return fmt.Errorf("failed to store user data, error: %v", err)
-	}
-	err = dao.Q.User.Create([]*model.User{{
-		FirstName:    user.FirstName,
-		LastName:     user.LastName,
-		Email:        user.Email,
-		Phone:        user.Phone,
-		PasswordHash: hashedPass,
-		Salt:         salt,
-		Address:      user.Address,
-		Role:         constants.UserRole,
-		UpdatedAt:    time.Now(),
-	}}...)
-	if err != nil {
-		return fmt.Errorf("failed to store user data, error: %v", err)
-	}
-	return nil
+func (u *UserSvc) CreateUser(user ...*model.User) error {
+	usr := dao.User
+	return usr.Save(user...)
 }
-
 func (u *UserSvc) UpdateUser(userName string, user *model.User) error {
 	usr := dao.User
-	_, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Where(usr.Deleted.Is(false)).
+	_, err := u.GetUserWithDelFlag(userName)
+	if err != nil {
+		return err
+	}
+	_, err = usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).
 		Updates(user)
 	if err != nil {
-		return fmt.Errorf("failed to update user data, error: %v", err)
+		return err
 	}
 	return nil
 }
 
-func (u *UserSvc) GetUser(userName string) (*model.User, error) {
+func (u *UserSvc) GetUserWithDelFlag(userName string) (*model.User, error) {
 	usr := dao.User
-	user, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Where(usr.Deleted.Is(false)).First()
+	user, err := usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).First()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user data, error: %v", err)
+		return nil, err
 	}
 	return user, nil
 }
-
+func (u *UserSvc) GetUserWithoutDelFlag(userName string) (*model.User, error) {
+	usr := dao.User
+	user, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).First()
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
 func (u *UserSvc) GettAllUsers(page, limit int) ([]*model.User, error) {
 	offset := (page - 1) * 10
 	usr := dao.User
 	users, _, err := usr.Where(usr.Deleted.Is(false)).FindByPage(offset, limit)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user data, error: %v", err)
+		return nil, err
 	}
 	return users, nil
 }
 
 func (u *UserSvc) DelUser(userName string) error {
 	usr := dao.User
-	_, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Where(usr.Deleted.Is(false)).
+	user, err := u.GetUserWithDelFlag(userName)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user already deleted")
+	}
+	_, err = usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).
 		Updates(&model.User{Deleted: true})
 	if err != nil {
-		return fmt.Errorf("failed to delete user data, error: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (u *UserSvc) UpdateRefreshToken(userName, refreshToken string) error {
+	usr := dao.User
+	if _, err := usr.Where(usr.Deleted.Is(false)).Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Select(usr.RefreshToken).Updates(&model.User{RefreshToken: refreshToken}); err != nil {
+		return fmt.Errorf("failed to logged out, error:%v", err)
+	}
+	return nil
+}
+func (u *UserSvc) UpdateDelFlag(userName string, delFlag bool) error {
+	usr := dao.User
+	if _, err := usr.Where(usr.Email.Eq(userName)).Or(usr.Phone.Eq(userName)).Select(usr.Deleted).Updates(&model.User{Deleted: delFlag}); err != nil {
+		return fmt.Errorf("failed to logged out, error:%v", err)
 	}
 	return nil
 }

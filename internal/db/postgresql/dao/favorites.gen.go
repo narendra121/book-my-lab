@@ -28,8 +28,8 @@ func newFavorite(db *gorm.DB, opts ...gen.DOOption) favorite {
 	tableName := _favorite.favoriteDo.TableName()
 	_favorite.ALL = field.NewAsterisk(tableName)
 	_favorite.ID = field.NewInt32(tableName, "id")
-	_favorite.UserID = field.NewInt64(tableName, "user_id")
-	_favorite.PropertyID = field.NewInt64(tableName, "property_id")
+	_favorite.UserEmail = field.NewString(tableName, "user_email")
+	_favorite.PropertyID = field.NewInt32(tableName, "property_id")
 	_favorite.CreatedAt = field.NewTime(tableName, "created_at")
 
 	_favorite.fillFieldMap()
@@ -42,8 +42,8 @@ type favorite struct {
 
 	ALL        field.Asterisk
 	ID         field.Int32
-	UserID     field.Int64
-	PropertyID field.Int64
+	UserEmail  field.String
+	PropertyID field.Int32
 	CreatedAt  field.Time
 
 	fieldMap map[string]field.Expr
@@ -62,8 +62,8 @@ func (f favorite) As(alias string) *favorite {
 func (f *favorite) updateTableName(table string) *favorite {
 	f.ALL = field.NewAsterisk(table)
 	f.ID = field.NewInt32(table, "id")
-	f.UserID = field.NewInt64(table, "user_id")
-	f.PropertyID = field.NewInt64(table, "property_id")
+	f.UserEmail = field.NewString(table, "user_email")
+	f.PropertyID = field.NewInt32(table, "property_id")
 	f.CreatedAt = field.NewTime(table, "created_at")
 
 	f.fillFieldMap()
@@ -83,7 +83,7 @@ func (f *favorite) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 func (f *favorite) fillFieldMap() {
 	f.fieldMap = make(map[string]field.Expr, 4)
 	f.fieldMap["id"] = f.ID
-	f.fieldMap["user_id"] = f.UserID
+	f.fieldMap["user_email"] = f.UserEmail
 	f.fieldMap["property_id"] = f.PropertyID
 	f.fieldMap["created_at"] = f.CreatedAt
 }

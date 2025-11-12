@@ -28,7 +28,7 @@ func newProperty(db *gorm.DB, opts ...gen.DOOption) property {
 	tableName := _property.propertyDo.TableName()
 	_property.ALL = field.NewAsterisk(tableName)
 	_property.ID = field.NewInt32(tableName, "id")
-	_property.PartnerID = field.NewInt64(tableName, "partner_id")
+	_property.PartnerEmail = field.NewString(tableName, "partner_email")
 	_property.Title = field.NewString(tableName, "title")
 	_property.Description = field.NewString(tableName, "description")
 	_property.PropertyType = field.NewString(tableName, "property_type")
@@ -53,7 +53,7 @@ type property struct {
 
 	ALL          field.Asterisk
 	ID           field.Int32
-	PartnerID    field.Int64
+	PartnerEmail field.String
 	Title        field.String
 	Description  field.String
 	PropertyType field.String
@@ -84,7 +84,7 @@ func (p property) As(alias string) *property {
 func (p *property) updateTableName(table string) *property {
 	p.ALL = field.NewAsterisk(table)
 	p.ID = field.NewInt32(table, "id")
-	p.PartnerID = field.NewInt64(table, "partner_id")
+	p.PartnerEmail = field.NewString(table, "partner_email")
 	p.Title = field.NewString(table, "title")
 	p.Description = field.NewString(table, "description")
 	p.PropertyType = field.NewString(table, "property_type")
@@ -116,7 +116,7 @@ func (p *property) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 func (p *property) fillFieldMap() {
 	p.fieldMap = make(map[string]field.Expr, 15)
 	p.fieldMap["id"] = p.ID
-	p.fieldMap["partner_id"] = p.PartnerID
+	p.fieldMap["partner_email"] = p.PartnerEmail
 	p.fieldMap["title"] = p.Title
 	p.fieldMap["description"] = p.Description
 	p.fieldMap["property_type"] = p.PropertyType

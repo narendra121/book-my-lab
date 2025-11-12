@@ -14,7 +14,6 @@ type CreateUser struct {
 }
 
 type UpdateUser struct {
-	UserName  string `json:"username"`
 	FirstName string `gorm:"column:first_name;type:character varying(100);not null" json:"first_name"`
 	LastName  string `gorm:"column:last_name;type:character varying(100);not null" json:"last_name"`
 	Address   string `gorm:"column:address;type:character varying(255);not null" json:"address"`
@@ -30,8 +29,4 @@ type APIResponse struct {
 type UserRoleReq struct {
 	UserName string `json:"username"`
 	Role     string `gorm:"column:role;type:character varying(100);not null" json:"role"`
-}
-
-type UserProfile struct {
-	UserName string `uri:"username" binding:"required"`
 }
