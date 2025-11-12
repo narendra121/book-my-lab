@@ -1,106 +1,54 @@
 package server
 
 import (
-	"crypto/tls"
-	"fmt"
 	"log"
-	"net/http"
-	"slices"
-	"strings"
 
 	"booking.com/internal/config"
-	"booking.com/internal/db/postgresql/dao"
 	"booking.com/internal/handlers/auth"
-	"booking.com/internal/handlers/users"
+	"booking.com/internal/handlers/user"
+	"booking.com/internal/server/middleware"
 	"booking.com/internal/svcs"
-	jwtauth "booking.com/pkg/auth/jwt-auth"
-	"booking.com/pkg/constants"
-	"booking.com/pkg/utils"
+	"github.com/gin-gonic/gin"
 )
 
 func StartHttpTlsServer(cfg *config.AppConfig) error {
-	tlsConfig, err := utils.CreateTlsConfig(cfg.HttpServer.CertPath, cfg.HttpServer.KeyPath, "")
-	if err != nil {
-		return err
+	router := gin.New()
+	router.Use(middleware.CommonChain()...)
+
+	router.GET("/health", middleware.Health)
+	// EndPoints withoutAuth
+	{
+		v1NoAuth := router.Group("/v1")
+		registerAuthAppNoAuth(v1NoAuth, cfg)
 	}
-	mux := http.NewServeMux()
+	// EndPoints withAuth
+	{
+		v1Auth := router.Group("/v1")
+		v1Auth.Use(middleware.AuthMiddleWare())
 
-	mux.HandleFunc("/health", commonMiddleWare(health, false, http.MethodGet))
-
-	registerAuthApp(mux, cfg)
-	registerUsersApp(mux, cfg)
-
-	tlsConfig.ClientAuth = tls.NoClientCert
-
-	httpTlsServer := &http.Server{
-		Addr:      cfg.HttpServer.Address,
-		TLSConfig: tlsConfig,
-		Handler:   mux,
+		registerUsersAppWithAuth(v1Auth, cfg)
 	}
-
-	log.Printf("Server started on https://%v", httpTlsServer.Addr)
-
-	if err := httpTlsServer.ListenAndServeTLS("", ""); err != nil {
+	log.Printf("Server started on https://%v", cfg.HttpServer.Address)
+	if err := router.Run(cfg.HttpServer.Address); err != nil {
 		return err
 	}
 	return nil
 }
-func health(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set(constants.ContentType, constants.ContentTypeTextPlain)
-	w.Write([]byte("Sever is Up and Running"))
+
+func registerUsersAppWithAuth(router *gin.RouterGroup, cfg *config.AppConfig) {
+	usrHandler := user.NewUserHandler(&svcs.UserSvc{AppCfg: cfg})
+
+	router.POST("/user/register", usrHandler.Add)
+	router.GET("/user/profile/:username", usrHandler.Get)
+	router.PUT("/user/update", usrHandler.Put)
+	router.GET("/user/list", usrHandler.GetAll)
+	router.PUT("/user/update-role", usrHandler.UpdateRole)
 }
 
-func registerUsersApp(mux *http.ServeMux, cfg *config.AppConfig) {
-	usrHandler := users.NewUserHandler(&svcs.UserSvc{AppCfg: cfg})
-
-	mux.HandleFunc("/users/register", commonMiddleWare(usrHandler.Add, false, http.MethodPost))
-	mux.HandleFunc("/users/update", commonMiddleWare(usrHandler.Put, true, http.MethodPut))
-}
-func registerAuthApp(mux *http.ServeMux, cfg *config.AppConfig) {
+func registerAuthAppNoAuth(router *gin.RouterGroup, cfg *config.AppConfig) {
 	authHandler := auth.NewAuthHandler(&svcs.AuthSvc{AppCfg: cfg})
 
-	mux.HandleFunc("/login", commonMiddleWare(authHandler.Login, false, http.MethodPost))
-	mux.HandleFunc("/refresh", commonMiddleWare(authHandler.Refresh, false, http.MethodPost))
-}
-func commonMiddleWare(handler http.HandlerFunc, authNeeded bool, methods ...string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var found bool
-		if slices.Contains(methods, r.Method) {
-			found = true
-		}
-		if !found {
-			http.Error(w, fmt.Sprintf("Method %s Not Allowed, Expected Methods %v", r.Method, strings.Join(methods, ",")), http.StatusMethodNotAllowed)
-			return
-		}
-		if authNeeded {
-			authHeader := r.Header.Get(constants.Authorization)
-			if authHeader == "" || !strings.HasPrefix(authHeader, constants.Bearer) {
-				http.Error(w, "token not provided", http.StatusUnauthorized)
-				return
-			}
-			token := authHeader[len(constants.Bearer):]
-			if token == "" {
-				http.Error(w, "token not provided", http.StatusUnauthorized)
-				return
-			}
-			userName, err := jwtauth.GetUnVerifiedJwtClaims(token, constants.UserName)
-			if err != nil || userName == "" {
-				http.Error(w, fmt.Sprintf("failed validate token, error: %v", err), http.StatusUnauthorized)
-				return
-			}
-			q := dao.User
-			user, _ := q.Where(q.Email.Eq(userName)).Or(q.Phone.Eq(userName)).First()
-			if user == nil {
-				http.Error(w, fmt.Sprintf("failed validate token, error: %v", err), http.StatusUnauthorized)
-				return
-			}
-			validToken, err := jwtauth.IsTokenValid(token, user.Salt, nil)
-			if err != nil || !validToken {
-				http.Error(w, "invalid token", http.StatusUnauthorized)
-				return
-			}
-		}
-		handler(w, r)
-	}
+	router.POST("/auth/login", authHandler.Login)
+	router.POST("/auth/refresh", authHandler.Refresh)
+	router.POST("/auth/logout", authHandler.LogOut)
 }

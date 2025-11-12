@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"booking.com/internal/utils"
 	"booking.com/pkg/constants"
-	"booking.com/pkg/utils"
 )
 
 type HttpClient interface {

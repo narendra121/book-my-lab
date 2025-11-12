@@ -18,4 +18,14 @@ const (
 	TokenType     = "token_type"
 	Authorization = "Authorization"
 	RefreshToken  = "refresh_token"
+
+	Success = "success"
+	Failed  = "failed"
+
+	UserRole    = "user"
+	PartnerRole = "partner"
+	AdminRole   = "admin"
+
+	CurrentUser = "curr_user"
+	Role        = "role"
 )

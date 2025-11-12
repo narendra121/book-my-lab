@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"booking.com/internal/dto"
 	"booking.com/internal/svcs"
+	"booking.com/internal/utils"
 	"booking.com/pkg/constants"
-	"booking.com/pkg/utils"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
@@ -20,64 +20,75 @@ func NewAuthHandler(authSvc *svcs.AuthSvc) *AuthHandler {
 		AuthSvc: authSvc,
 	}
 }
-func (a *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) Login(c *gin.Context) {
 	var reqUser dto.Login
-	err := utils.ParseHttpRequest(r, &reqUser)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid reqBody, error: %v", err), http.StatusBadRequest)
+	if err := c.ShouldBindBodyWithJSON(&reqUser); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
 		return
 	}
 	if reqUser.UserName == "" || reqUser.Password == "" {
-		http.Error(w, "username/password is empty", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("username or password is empty"), nil))
 		return
 	}
 	token, refreshToken, err := a.AuthSvc.Login(reqUser)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     constants.RefreshToken,
 		Value:    refreshToken,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",
 	})
-	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	c.JSON(http.StatusOK, utils.WriteAppResponse("", nil, map[string]string{
 		constants.AccessToken: token,
 		constants.TokenType:   constants.Bearer,
-	})
+	}))
 }
 
-func (a *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(constants.RefreshToken)
+func (a *AuthHandler) Refresh(c *gin.Context) {
+	refreshToken, err := c.Cookie(constants.RefreshToken)
 	if err != nil {
-		http.Error(w, "missing refresh token", http.StatusUnauthorized)
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
 		return
 	}
-	refreshToken := cookie.Value
 	if refreshToken == "" {
-		http.Error(w, "access token is missing", http.StatusBadRequest)
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("missing refresh token"), nil))
 		return
 	}
 	newToken, newRefreshToken, err := a.AuthSvc.Refresh(refreshToken)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%v", err), http.StatusUnauthorized)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", err, nil))
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     constants.RefreshToken,
 		Value:    newRefreshToken,
 		HttpOnly: true,
 		Secure:   false,
 		Path:     "/",
 	})
-	w.Header().Set(constants.ContentType, constants.ContentTypeJson)
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	c.JSON(http.StatusOK, utils.WriteAppResponse("", nil, map[string]string{
 		constants.AccessToken: newToken,
 		constants.TokenType:   constants.Bearer,
-	})
+	}))
+}
+func (a *AuthHandler) LogOut(c *gin.Context) {
+	refreshToken, err := c.Cookie(constants.RefreshToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if refreshToken == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("missing refresh token"), nil))
+		return
+	}
+	err = a.AuthSvc.LogOut(refreshToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, utils.WriteAppResponse("user logged out successfully", nil, nil))
 }

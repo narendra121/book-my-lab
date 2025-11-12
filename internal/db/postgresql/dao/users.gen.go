@@ -31,18 +31,16 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.FirstName = field.NewString(tableName, "first_name")
 	_user.LastName = field.NewString(tableName, "last_name")
 	_user.Email = field.NewString(tableName, "email")
-	_user.EmailOtp = field.NewString(tableName, "email_otp")
-	_user.EmailOtpExpires = field.NewTime(tableName, "email_otp_expires")
-	_user.IsEmailVerified = field.NewBool(tableName, "is_email_verified")
 	_user.Phone = field.NewString(tableName, "phone")
-	_user.PhoneOtp = field.NewString(tableName, "phone_otp")
-	_user.PhoneOtpExpires = field.NewTime(tableName, "phone_otp_expires")
-	_user.IsPhoneVerified = field.NewBool(tableName, "is_phone_verified")
-	_user.RefreshToken = field.NewString(tableName, "refresh_token")
 	_user.PasswordHash = field.NewString(tableName, "password_hash")
 	_user.Salt = field.NewString(tableName, "salt")
 	_user.ProfilePicURL = field.NewString(tableName, "profile_pic_url")
 	_user.Address = field.NewString(tableName, "address")
+	_user.Role = field.NewString(tableName, "role")
+	_user.IsEmailVerified = field.NewBool(tableName, "is_email_verified")
+	_user.IsPhoneVerified = field.NewBool(tableName, "is_phone_verified")
+	_user.RefreshToken = field.NewString(tableName, "refresh_token")
+	_user.Deleted = field.NewBool(tableName, "deleted")
 	_user.CreatedAt = field.NewTime(tableName, "created_at")
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -59,18 +57,16 @@ type user struct {
 	FirstName       field.String
 	LastName        field.String
 	Email           field.String
-	EmailOtp        field.String
-	EmailOtpExpires field.Time
-	IsEmailVerified field.Bool
 	Phone           field.String
-	PhoneOtp        field.String
-	PhoneOtpExpires field.Time
-	IsPhoneVerified field.Bool
-	RefreshToken    field.String
 	PasswordHash    field.String
 	Salt            field.String
 	ProfilePicURL   field.String
 	Address         field.String
+	Role            field.String
+	IsEmailVerified field.Bool
+	IsPhoneVerified field.Bool
+	RefreshToken    field.String
+	Deleted         field.Bool
 	CreatedAt       field.Time
 	UpdatedAt       field.Time
 
@@ -93,18 +89,16 @@ func (u *user) updateTableName(table string) *user {
 	u.FirstName = field.NewString(table, "first_name")
 	u.LastName = field.NewString(table, "last_name")
 	u.Email = field.NewString(table, "email")
-	u.EmailOtp = field.NewString(table, "email_otp")
-	u.EmailOtpExpires = field.NewTime(table, "email_otp_expires")
-	u.IsEmailVerified = field.NewBool(table, "is_email_verified")
 	u.Phone = field.NewString(table, "phone")
-	u.PhoneOtp = field.NewString(table, "phone_otp")
-	u.PhoneOtpExpires = field.NewTime(table, "phone_otp_expires")
-	u.IsPhoneVerified = field.NewBool(table, "is_phone_verified")
-	u.RefreshToken = field.NewString(table, "refresh_token")
 	u.PasswordHash = field.NewString(table, "password_hash")
 	u.Salt = field.NewString(table, "salt")
 	u.ProfilePicURL = field.NewString(table, "profile_pic_url")
 	u.Address = field.NewString(table, "address")
+	u.Role = field.NewString(table, "role")
+	u.IsEmailVerified = field.NewBool(table, "is_email_verified")
+	u.IsPhoneVerified = field.NewBool(table, "is_phone_verified")
+	u.RefreshToken = field.NewString(table, "refresh_token")
+	u.Deleted = field.NewBool(table, "deleted")
 	u.CreatedAt = field.NewTime(table, "created_at")
 	u.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -123,23 +117,21 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 18)
+	u.fieldMap = make(map[string]field.Expr, 16)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["first_name"] = u.FirstName
 	u.fieldMap["last_name"] = u.LastName
 	u.fieldMap["email"] = u.Email
-	u.fieldMap["email_otp"] = u.EmailOtp
-	u.fieldMap["email_otp_expires"] = u.EmailOtpExpires
-	u.fieldMap["is_email_verified"] = u.IsEmailVerified
 	u.fieldMap["phone"] = u.Phone
-	u.fieldMap["phone_otp"] = u.PhoneOtp
-	u.fieldMap["phone_otp_expires"] = u.PhoneOtpExpires
-	u.fieldMap["is_phone_verified"] = u.IsPhoneVerified
-	u.fieldMap["refresh_token"] = u.RefreshToken
 	u.fieldMap["password_hash"] = u.PasswordHash
 	u.fieldMap["salt"] = u.Salt
 	u.fieldMap["profile_pic_url"] = u.ProfilePicURL
 	u.fieldMap["address"] = u.Address
+	u.fieldMap["role"] = u.Role
+	u.fieldMap["is_email_verified"] = u.IsEmailVerified
+	u.fieldMap["is_phone_verified"] = u.IsPhoneVerified
+	u.fieldMap["refresh_token"] = u.RefreshToken
+	u.fieldMap["deleted"] = u.Deleted
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
 }
