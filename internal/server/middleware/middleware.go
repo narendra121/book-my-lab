@@ -58,7 +58,7 @@ func AuthMiddleWare() gin.HandlerFunc {
 			return
 		}
 		usrSvc := &svcs.UserSvc{}
-		user, err := usrSvc.GetUserWithDelFlag(userName)
+		user, err := usrSvc.GetUserByUserName(userName, true)
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", utils.ErrUserNotFound, nil))
@@ -76,9 +76,8 @@ func AuthMiddleWare() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.WriteAppResponse("", errors.New("session expired"), nil))
 			return
 		}
-		c.Set(constants.CurrentUser, user)
 		c.Set(constants.Role, user.Role)
-		c.Set(constants.CurrentUserName, userName)
+		c.Set(constants.CurrentUserName, user.Username)
 		c.Next()
 	}
 }

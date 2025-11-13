@@ -27,11 +27,13 @@ func newRating(db *gorm.DB, opts ...gen.DOOption) rating {
 
 	tableName := _rating.ratingDo.TableName()
 	_rating.ALL = field.NewAsterisk(tableName)
-	_rating.ID = field.NewInt32(tableName, "id")
-	_rating.PropertyID = field.NewInt32(tableName, "property_id")
-	_rating.BuyerEmail = field.NewString(tableName, "buyer_email")
+	_rating.ID = field.NewInt64(tableName, "id")
+	_rating.PropertyID = field.NewInt64(tableName, "property_id")
+	_rating.BuyerUsername = field.NewString(tableName, "buyer_username")
+	_rating.PartnerUsername = field.NewString(tableName, "partner_username")
 	_rating.Rating = field.NewInt32(tableName, "rating")
 	_rating.ReviewText = field.NewString(tableName, "review_text")
+	_rating.Deleted = field.NewBool(tableName, "deleted")
 	_rating.CreatedAt = field.NewTime(tableName, "created_at")
 
 	_rating.fillFieldMap()
@@ -42,13 +44,15 @@ func newRating(db *gorm.DB, opts ...gen.DOOption) rating {
 type rating struct {
 	ratingDo
 
-	ALL        field.Asterisk
-	ID         field.Int32
-	PropertyID field.Int32
-	BuyerEmail field.String
-	Rating     field.Int32
-	ReviewText field.String
-	CreatedAt  field.Time
+	ALL             field.Asterisk
+	ID              field.Int64
+	PropertyID      field.Int64
+	BuyerUsername   field.String
+	PartnerUsername field.String
+	Rating          field.Int32
+	ReviewText      field.String
+	Deleted         field.Bool
+	CreatedAt       field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -65,11 +69,13 @@ func (r rating) As(alias string) *rating {
 
 func (r *rating) updateTableName(table string) *rating {
 	r.ALL = field.NewAsterisk(table)
-	r.ID = field.NewInt32(table, "id")
-	r.PropertyID = field.NewInt32(table, "property_id")
-	r.BuyerEmail = field.NewString(table, "buyer_email")
+	r.ID = field.NewInt64(table, "id")
+	r.PropertyID = field.NewInt64(table, "property_id")
+	r.BuyerUsername = field.NewString(table, "buyer_username")
+	r.PartnerUsername = field.NewString(table, "partner_username")
 	r.Rating = field.NewInt32(table, "rating")
 	r.ReviewText = field.NewString(table, "review_text")
+	r.Deleted = field.NewBool(table, "deleted")
 	r.CreatedAt = field.NewTime(table, "created_at")
 
 	r.fillFieldMap()
@@ -87,12 +93,14 @@ func (r *rating) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (r *rating) fillFieldMap() {
-	r.fieldMap = make(map[string]field.Expr, 6)
+	r.fieldMap = make(map[string]field.Expr, 8)
 	r.fieldMap["id"] = r.ID
 	r.fieldMap["property_id"] = r.PropertyID
-	r.fieldMap["buyer_email"] = r.BuyerEmail
+	r.fieldMap["buyer_username"] = r.BuyerUsername
+	r.fieldMap["partner_username"] = r.PartnerUsername
 	r.fieldMap["rating"] = r.Rating
 	r.fieldMap["review_text"] = r.ReviewText
+	r.fieldMap["deleted"] = r.Deleted
 	r.fieldMap["created_at"] = r.CreatedAt
 }
 

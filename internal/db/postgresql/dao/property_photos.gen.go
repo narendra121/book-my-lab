@@ -27,8 +27,8 @@ func newPropertyPhoto(db *gorm.DB, opts ...gen.DOOption) propertyPhoto {
 
 	tableName := _propertyPhoto.propertyPhotoDo.TableName()
 	_propertyPhoto.ALL = field.NewAsterisk(tableName)
-	_propertyPhoto.ID = field.NewInt32(tableName, "id")
-	_propertyPhoto.PropertyID = field.NewInt32(tableName, "property_id")
+	_propertyPhoto.ID = field.NewInt64(tableName, "id")
+	_propertyPhoto.PropertyID = field.NewInt64(tableName, "property_id")
 	_propertyPhoto.ImageURL = field.NewString(tableName, "image_url")
 	_propertyPhoto.IsPrimary = field.NewBool(tableName, "is_primary")
 	_propertyPhoto.CreatedAt = field.NewTime(tableName, "created_at")
@@ -42,8 +42,8 @@ type propertyPhoto struct {
 	propertyPhotoDo
 
 	ALL        field.Asterisk
-	ID         field.Int32
-	PropertyID field.Int32
+	ID         field.Int64
+	PropertyID field.Int64
 	ImageURL   field.String
 	IsPrimary  field.Bool
 	CreatedAt  field.Time
@@ -63,8 +63,8 @@ func (p propertyPhoto) As(alias string) *propertyPhoto {
 
 func (p *propertyPhoto) updateTableName(table string) *propertyPhoto {
 	p.ALL = field.NewAsterisk(table)
-	p.ID = field.NewInt32(table, "id")
-	p.PropertyID = field.NewInt32(table, "property_id")
+	p.ID = field.NewInt64(table, "id")
+	p.PropertyID = field.NewInt64(table, "property_id")
 	p.ImageURL = field.NewString(table, "image_url")
 	p.IsPrimary = field.NewBool(table, "is_primary")
 	p.CreatedAt = field.NewTime(table, "created_at")

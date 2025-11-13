@@ -55,7 +55,7 @@ func (u *UserHandler) GetProfile(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid request"), nil))
 		return
 	}
-	user, err := u.UserSvc.GetUserWithDelFlag(userName)
+	user, err := u.UserSvc.GetUserByUserName(userName, true)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
 		return

@@ -12,10 +12,11 @@ const TableNameFavorite = "favorites"
 
 // Favorite mapped from table <favorites>
 type Favorite struct {
-	ID         int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	UserEmail  string    `gorm:"column:user_email;type:character varying(100);not null" json:"user_email"`
-	PropertyID int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
-	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
+	ID           int64     `gorm:"column:id;type:bigint;primaryKey;autoIncrement:true" json:"id"`
+	UserUsername string    `gorm:"column:user_username;type:character varying(50);not null" json:"user_username"`
+	PropertyID   int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
+	Deleted      bool      `gorm:"column:deleted;type:boolean" json:"deleted"`
+	CreatedAt    time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
 // TableName Favorite's table name

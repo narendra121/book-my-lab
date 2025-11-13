@@ -12,9 +12,10 @@ const TableNameUser = "users"
 
 // User mapped from table <users>
 type User struct {
-	Email           string    `gorm:"column:email;type:character varying(100);primaryKey" json:"email"`
+	Username        string    `gorm:"column:username;type:character varying(50);primaryKey" json:"username"`
 	FirstName       string    `gorm:"column:first_name;type:character varying(100);not null" json:"first_name"`
 	LastName        string    `gorm:"column:last_name;type:character varying(100);not null" json:"last_name"`
+	Email           string    `gorm:"column:email;type:character varying(100);not null" json:"email"`
 	Phone           string    `gorm:"column:phone;type:character varying(20)" json:"phone"`
 	PasswordHash    string    `gorm:"column:password_hash;type:character varying(255);not null" json:"password_hash"`
 	Salt            string    `gorm:"column:salt;type:character varying(100);not null" json:"salt"`
@@ -24,6 +25,7 @@ type User struct {
 	IsEmailVerified bool      `gorm:"column:is_email_verified;type:boolean" json:"is_email_verified"`
 	IsPhoneVerified bool      `gorm:"column:is_phone_verified;type:boolean" json:"is_phone_verified"`
 	RefreshToken    string    `gorm:"column:refresh_token;type:character varying(255)" json:"refresh_token"`
+	Rating          float64   `gorm:"column:rating;type:numeric(3,2)" json:"rating"`
 	Deleted         bool      `gorm:"column:deleted;type:boolean" json:"deleted"`
 	CreatedAt       time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt       time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`

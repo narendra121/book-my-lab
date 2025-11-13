@@ -12,21 +12,22 @@ const TableNameProperty = "properties"
 
 // Property mapped from table <properties>
 type Property struct {
-	ID           int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PartnerEmail string    `gorm:"column:partner_email;type:character varying(100);not null" json:"partner_email"`
-	Title        string    `gorm:"column:title;type:character varying(200);not null" json:"title"`
-	Description  string    `gorm:"column:description;type:text" json:"description"`
-	PropertyType string    `gorm:"column:property_type;type:property_type_enum;not null" json:"property_type"`
-	Bedrooms     int32     `gorm:"column:bedrooms;type:integer" json:"bedrooms"`
-	Bathrooms    int32     `gorm:"column:bathrooms;type:integer" json:"bathrooms"`
-	AreaSqft     float64   `gorm:"column:area_sqft;type:numeric(10,2)" json:"area_sqft"`
-	Price        float64   `gorm:"column:price;type:numeric(12,2)" json:"price"`
-	City         string    `gorm:"column:city;type:character varying(100)" json:"city"`
-	State        string    `gorm:"column:state;type:character varying(100)" json:"state"`
-	Address      string    `gorm:"column:address;type:text" json:"address"`
-	Status       string    `gorm:"column:status;type:property_status_enum;default:LISTED" json:"status"`
-	CreatedAt    time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID              int64     `gorm:"column:id;type:bigint;primaryKey;autoIncrement:true" json:"id"`
+	PartnerUsername string    `gorm:"column:partner_username;type:character varying(50);not null" json:"partner_username"`
+	Title           string    `gorm:"column:title;type:character varying(200);not null" json:"title"`
+	Description     string    `gorm:"column:description;type:text" json:"description"`
+	PropertyType    string    `gorm:"column:property_type;type:property_type_enum;not null" json:"property_type"`
+	Bedrooms        int32     `gorm:"column:bedrooms;type:integer" json:"bedrooms"`
+	Bathrooms       int32     `gorm:"column:bathrooms;type:integer" json:"bathrooms"`
+	AreaSqft        float64   `gorm:"column:area_sqft;type:numeric(10,2)" json:"area_sqft"`
+	Price           float64   `gorm:"column:price;type:numeric(12,2)" json:"price"`
+	City            string    `gorm:"column:city;type:character varying(100)" json:"city"`
+	State           string    `gorm:"column:state;type:character varying(100)" json:"state"`
+	Address         string    `gorm:"column:address;type:text" json:"address"`
+	Status          string    `gorm:"column:status;type:property_status_enum;default:LISTED" json:"status"`
+	Deleted         bool      `gorm:"column:deleted;type:boolean" json:"deleted"`
+	CreatedAt       time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // TableName Property's table name

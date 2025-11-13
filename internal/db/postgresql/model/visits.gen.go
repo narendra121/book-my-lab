@@ -12,14 +12,15 @@ const TableNameVisit = "visits"
 
 // Visit mapped from table <visits>
 type Visit struct {
-	ID             int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PropertyID     int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
-	BuyerEmail     string    `gorm:"column:buyer_email;type:character varying(100);not null" json:"buyer_email"`
+	ID             int64     `gorm:"column:id;type:bigint;primaryKey;autoIncrement:true" json:"id"`
+	PropertyID     int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
+	BuyerUsername  string    `gorm:"column:buyer_username;type:character varying(50);not null" json:"buyer_username"`
 	ScheduledTime  time.Time `gorm:"column:scheduled_time;type:timestamp without time zone;not null" json:"scheduled_time"`
 	Status         string    `gorm:"column:status;type:visit_status_enum;default:PENDING" json:"status"`
 	RescheduleTime time.Time `gorm:"column:reschedule_time;type:timestamp without time zone" json:"reschedule_time"`
 	PartnerNote    string    `gorm:"column:partner_note;type:text" json:"partner_note"`
 	BuyerNote      string    `gorm:"column:buyer_note;type:text" json:"buyer_note"`
+	Deleted        bool      `gorm:"column:deleted;type:boolean" json:"deleted"`
 	CreatedAt      time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"column:updated_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }

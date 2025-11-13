@@ -27,9 +27,10 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 
 	tableName := _user.userDo.TableName()
 	_user.ALL = field.NewAsterisk(tableName)
-	_user.Email = field.NewString(tableName, "email")
+	_user.Username = field.NewString(tableName, "username")
 	_user.FirstName = field.NewString(tableName, "first_name")
 	_user.LastName = field.NewString(tableName, "last_name")
+	_user.Email = field.NewString(tableName, "email")
 	_user.Phone = field.NewString(tableName, "phone")
 	_user.PasswordHash = field.NewString(tableName, "password_hash")
 	_user.Salt = field.NewString(tableName, "salt")
@@ -39,6 +40,7 @@ func newUser(db *gorm.DB, opts ...gen.DOOption) user {
 	_user.IsEmailVerified = field.NewBool(tableName, "is_email_verified")
 	_user.IsPhoneVerified = field.NewBool(tableName, "is_phone_verified")
 	_user.RefreshToken = field.NewString(tableName, "refresh_token")
+	_user.Rating = field.NewFloat64(tableName, "rating")
 	_user.Deleted = field.NewBool(tableName, "deleted")
 	_user.CreatedAt = field.NewTime(tableName, "created_at")
 	_user.UpdatedAt = field.NewTime(tableName, "updated_at")
@@ -52,9 +54,10 @@ type user struct {
 	userDo
 
 	ALL             field.Asterisk
-	Email           field.String
+	Username        field.String
 	FirstName       field.String
 	LastName        field.String
+	Email           field.String
 	Phone           field.String
 	PasswordHash    field.String
 	Salt            field.String
@@ -64,6 +67,7 @@ type user struct {
 	IsEmailVerified field.Bool
 	IsPhoneVerified field.Bool
 	RefreshToken    field.String
+	Rating          field.Float64
 	Deleted         field.Bool
 	CreatedAt       field.Time
 	UpdatedAt       field.Time
@@ -83,9 +87,10 @@ func (u user) As(alias string) *user {
 
 func (u *user) updateTableName(table string) *user {
 	u.ALL = field.NewAsterisk(table)
-	u.Email = field.NewString(table, "email")
+	u.Username = field.NewString(table, "username")
 	u.FirstName = field.NewString(table, "first_name")
 	u.LastName = field.NewString(table, "last_name")
+	u.Email = field.NewString(table, "email")
 	u.Phone = field.NewString(table, "phone")
 	u.PasswordHash = field.NewString(table, "password_hash")
 	u.Salt = field.NewString(table, "salt")
@@ -95,6 +100,7 @@ func (u *user) updateTableName(table string) *user {
 	u.IsEmailVerified = field.NewBool(table, "is_email_verified")
 	u.IsPhoneVerified = field.NewBool(table, "is_phone_verified")
 	u.RefreshToken = field.NewString(table, "refresh_token")
+	u.Rating = field.NewFloat64(table, "rating")
 	u.Deleted = field.NewBool(table, "deleted")
 	u.CreatedAt = field.NewTime(table, "created_at")
 	u.UpdatedAt = field.NewTime(table, "updated_at")
@@ -114,10 +120,11 @@ func (u *user) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *user) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 15)
-	u.fieldMap["email"] = u.Email
+	u.fieldMap = make(map[string]field.Expr, 17)
+	u.fieldMap["username"] = u.Username
 	u.fieldMap["first_name"] = u.FirstName
 	u.fieldMap["last_name"] = u.LastName
+	u.fieldMap["email"] = u.Email
 	u.fieldMap["phone"] = u.Phone
 	u.fieldMap["password_hash"] = u.PasswordHash
 	u.fieldMap["salt"] = u.Salt
@@ -127,6 +134,7 @@ func (u *user) fillFieldMap() {
 	u.fieldMap["is_email_verified"] = u.IsEmailVerified
 	u.fieldMap["is_phone_verified"] = u.IsPhoneVerified
 	u.fieldMap["refresh_token"] = u.RefreshToken
+	u.fieldMap["rating"] = u.Rating
 	u.fieldMap["deleted"] = u.Deleted
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt

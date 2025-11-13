@@ -12,12 +12,14 @@ const TableNameRating = "ratings"
 
 // Rating mapped from table <ratings>
 type Rating struct {
-	ID         int32     `gorm:"column:id;type:integer;primaryKey;autoIncrement:true" json:"id"`
-	PropertyID int32     `gorm:"column:property_id;type:integer;not null" json:"property_id"`
-	BuyerEmail string    `gorm:"column:buyer_email;type:character varying(100);not null" json:"buyer_email"`
-	Rating     int32     `gorm:"column:rating;type:integer" json:"rating"`
-	ReviewText string    `gorm:"column:review_text;type:text" json:"review_text"`
-	CreatedAt  time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
+	ID              int64     `gorm:"column:id;type:bigint;primaryKey;autoIncrement:true" json:"id"`
+	PropertyID      int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
+	BuyerUsername   string    `gorm:"column:buyer_username;type:character varying(50);not null" json:"buyer_username"`
+	PartnerUsername string    `gorm:"column:partner_username;type:character varying(50);not null" json:"partner_username"`
+	Rating          int32     `gorm:"column:rating;type:integer" json:"rating"`
+	ReviewText      string    `gorm:"column:review_text;type:text" json:"review_text"`
+	Deleted         bool      `gorm:"column:deleted;type:boolean" json:"deleted"`
+	CreatedAt       time.Time `gorm:"column:created_at;type:timestamp without time zone;default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
 // TableName Rating's table name

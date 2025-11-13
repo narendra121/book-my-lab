@@ -25,17 +25,38 @@ func NewAuthSvc(cfg *config.AppConfig) *AuthSvc {
 	return &AuthSvc{AppCfg: cfg}
 }
 func (a *AuthSvc) RegisterUser(userReq *dto.CreateUser, userSvc *UserSvc) error {
-	user, err := userSvc.GetUserWithoutDelFlag(userReq.Email)
+	usr, err := userSvc.GetUserWithEmailOrPhone(userReq.Email, userReq.Phone, false)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return err
 	}
-	if user != nil && !user.Deleted {
-		return utils.ErrUserAlreadyExists
-	}
-	if user != nil && user.Deleted {
-		err := userSvc.UpdateDelFlag(userReq.Email, false)
-		if err != nil {
+	if usr != nil {
+		var usrE []*model.User
+		if userReq.Email != "" {
+			usrE, err = userSvc.FilterUsers("", userReq.Email, "", false)
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return err
+			}
+		}
+		usrP, err := userSvc.FilterUsers("", "", userReq.Phone, false)
+		if err != nil && err != gorm.ErrRecordNotFound {
 			return err
+		}
+		if len(usrE) > 0 && len(usrP) > 0 {
+			if usrE[0].Deleted && usrP[0].Deleted {
+				return errors.New(utils.ErrUserAlreadyExistsWithEmailAndPhone.Error() + ". Please activate")
+			}
+			return utils.ErrUserAlreadyExistsWithEmailAndPhone
+		}
+		if len(usrE) > 0 && len(usrP) == 0 {
+			if usrE[0].Deleted {
+				return errors.New(utils.ErrUserAlreadyExistsWithEmail.Error() + ". Please activate")
+			}
+			return utils.ErrUserAlreadyExistsWithEmail
+		} else {
+			if usrP[0].Deleted {
+				return errors.New(utils.ErrUserAlreadyExistsWithPhone.Error() + ". Please activate")
+			}
+			return utils.ErrUserAlreadyExistsWithPhone
 		}
 	}
 	salt := utils.GetUUID()
@@ -43,7 +64,7 @@ func (a *AuthSvc) RegisterUser(userReq *dto.CreateUser, userSvc *UserSvc) error 
 	if err != nil {
 		return err
 	}
-	err = userSvc.CreateUser([]*model.User{{
+	err = userSvc.CreateUser(&model.User{
 		FirstName:    userReq.FirstName,
 		LastName:     userReq.LastName,
 		Email:        userReq.Email,
@@ -54,14 +75,14 @@ func (a *AuthSvc) RegisterUser(userReq *dto.CreateUser, userSvc *UserSvc) error 
 		Role:         constants.UserRole,
 		Deleted:      false,
 		UpdatedAt:    time.Now(),
-	}}...)
+	})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 func (a *AuthSvc) Login(reqUser dto.Login, userSvc *UserSvc) (string, string, error) {
-	user, err := userSvc.GetUserWithDelFlag(reqUser.UserName)
+	user, err := userSvc.GetUserWithEmailOrPhone(reqUser.UserName, reqUser.UserName, true)
 	if err != nil {
 		return "", "", err
 	}
@@ -77,10 +98,10 @@ func (a *AuthSvc) Login(reqUser dto.Login, userSvc *UserSvc) (string, string, er
 func (a *AuthSvc) Refresh(userName, refreshToken string, userSvc *UserSvc) (string, string, error) {
 	validateFunc := func(userName ...string) bool {
 		q := dao.User
-		user, _ := q.Where(q.Email.Eq(userName[0])).Or(q.Phone.Eq(userName[0])).Where(q.Deleted.Is(false)).First()
+		user, _ := q.Where(q.Username.Eq(userName[0])).Where(q.Deleted.Is(false)).First()
 		return user != nil
 	}
-	user, err := userSvc.GetUserWithDelFlag(userName)
+	user, err := userSvc.GetUserByUserName(userName, true)
 	if err != nil {
 		return "", "", err
 	}
@@ -101,7 +122,7 @@ func (a *AuthSvc) Refresh(userName, refreshToken string, userSvc *UserSvc) (stri
 	return a.getAccessAndRefreshTokens(user, userSvc)
 }
 func (a *AuthSvc) LogOut(userName string, usrSvc *UserSvc) error {
-	user, err := usrSvc.GetUserWithDelFlag(userName)
+	user, err := usrSvc.GetUserByUserName(userName, true)
 	if err != nil {
 		return err
 	}
@@ -118,18 +139,28 @@ func (a *AuthSvc) LogOut(userName string, usrSvc *UserSvc) error {
 	return nil
 }
 func (a *AuthSvc) getAccessAndRefreshTokens(user *model.User, userSvc *UserSvc) (string, string, error) {
-	token, err := jwtauth.GetToken(user.Email, user.Salt, a.AppCfg.Jwt.AccessTokenExpiry)
+	token, err := jwtauth.GetToken(user.Username, user.Salt, a.AppCfg.Jwt.AccessTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, err := jwtauth.GetToken(user.Email, user.Salt, a.AppCfg.Jwt.RefreshTokenExpiry)
+	refreshToken, err := jwtauth.GetToken(user.Username, user.Salt, a.AppCfg.Jwt.RefreshTokenExpiry)
 	if err != nil {
 		return "", "", err
 	}
 	hash := sha256.Sum256([]byte(refreshToken))
-	err = userSvc.UpdateRefreshToken(user.Email, hex.EncodeToString(hash[:]))
+	err = userSvc.UpdateRefreshToken(user.Username, hex.EncodeToString(hash[:]))
 	if err != nil {
 		return "", "", err
 	}
 	return token, refreshToken, nil
+}
+func (a *AuthSvc) ActivateUser(userName string, usrSvc *UserSvc) error {
+	user, err := usrSvc.GetUserWithEmailOrPhone(userName, userName, true)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return utils.ErrUserAlreadyExistsWithEmailOrPhone
+	}
+	return usrSvc.UpdateDelFlag(user.Username, false)
 }

@@ -30,9 +30,17 @@ func (a *AuthHandler) Register(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
 		return
 	}
+	var errMsg string
+	if userReq.Phone == "" {
+		errMsg += "phone number not provided"
+	}
+	if errMsg != "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New(errMsg), nil))
+		return
+	}
 	if err := a.AuthSvc.RegisterUser(&userReq, a.UsrSvc); err != nil {
-		if errors.Is(err, utils.ErrUserAlreadyExists) {
-			c.AbortWithStatusJSON(http.StatusOK, utils.WriteAppResponse("", utils.ErrUserAlreadyExists, nil))
+		if errors.Is(err, utils.ErrUserAlreadyExistsWithEmail) || errors.Is(err, utils.ErrUserAlreadyExistsWithPhone) {
+			c.AbortWithStatusJSON(http.StatusOK, utils.WriteAppResponse("", err, nil))
 			return
 		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
@@ -151,4 +159,16 @@ func (a *AuthHandler) LogOut(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, utils.WriteAppResponse("user logged out successfully", nil, nil))
+}
+func (a *AuthHandler) ActivateUser(c *gin.Context) {
+	var userReq dto.Activate
+	if err := c.ShouldBindBodyWithJSON(&userReq); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if err := a.AuthSvc.ActivateUser(userReq.UserName, a.UsrSvc); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, utils.WriteAppResponse("user activated successfully", nil, nil))
 }

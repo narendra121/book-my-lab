@@ -27,8 +27,8 @@ func newProperty(db *gorm.DB, opts ...gen.DOOption) property {
 
 	tableName := _property.propertyDo.TableName()
 	_property.ALL = field.NewAsterisk(tableName)
-	_property.ID = field.NewInt32(tableName, "id")
-	_property.PartnerEmail = field.NewString(tableName, "partner_email")
+	_property.ID = field.NewInt64(tableName, "id")
+	_property.PartnerUsername = field.NewString(tableName, "partner_username")
 	_property.Title = field.NewString(tableName, "title")
 	_property.Description = field.NewString(tableName, "description")
 	_property.PropertyType = field.NewString(tableName, "property_type")
@@ -40,6 +40,7 @@ func newProperty(db *gorm.DB, opts ...gen.DOOption) property {
 	_property.State = field.NewString(tableName, "state")
 	_property.Address = field.NewString(tableName, "address")
 	_property.Status = field.NewString(tableName, "status")
+	_property.Deleted = field.NewBool(tableName, "deleted")
 	_property.CreatedAt = field.NewTime(tableName, "created_at")
 	_property.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -51,22 +52,23 @@ func newProperty(db *gorm.DB, opts ...gen.DOOption) property {
 type property struct {
 	propertyDo
 
-	ALL          field.Asterisk
-	ID           field.Int32
-	PartnerEmail field.String
-	Title        field.String
-	Description  field.String
-	PropertyType field.String
-	Bedrooms     field.Int32
-	Bathrooms    field.Int32
-	AreaSqft     field.Float64
-	Price        field.Float64
-	City         field.String
-	State        field.String
-	Address      field.String
-	Status       field.String
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
+	ALL             field.Asterisk
+	ID              field.Int64
+	PartnerUsername field.String
+	Title           field.String
+	Description     field.String
+	PropertyType    field.String
+	Bedrooms        field.Int32
+	Bathrooms       field.Int32
+	AreaSqft        field.Float64
+	Price           field.Float64
+	City            field.String
+	State           field.String
+	Address         field.String
+	Status          field.String
+	Deleted         field.Bool
+	CreatedAt       field.Time
+	UpdatedAt       field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -83,8 +85,8 @@ func (p property) As(alias string) *property {
 
 func (p *property) updateTableName(table string) *property {
 	p.ALL = field.NewAsterisk(table)
-	p.ID = field.NewInt32(table, "id")
-	p.PartnerEmail = field.NewString(table, "partner_email")
+	p.ID = field.NewInt64(table, "id")
+	p.PartnerUsername = field.NewString(table, "partner_username")
 	p.Title = field.NewString(table, "title")
 	p.Description = field.NewString(table, "description")
 	p.PropertyType = field.NewString(table, "property_type")
@@ -96,6 +98,7 @@ func (p *property) updateTableName(table string) *property {
 	p.State = field.NewString(table, "state")
 	p.Address = field.NewString(table, "address")
 	p.Status = field.NewString(table, "status")
+	p.Deleted = field.NewBool(table, "deleted")
 	p.CreatedAt = field.NewTime(table, "created_at")
 	p.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -114,9 +117,9 @@ func (p *property) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (p *property) fillFieldMap() {
-	p.fieldMap = make(map[string]field.Expr, 15)
+	p.fieldMap = make(map[string]field.Expr, 16)
 	p.fieldMap["id"] = p.ID
-	p.fieldMap["partner_email"] = p.PartnerEmail
+	p.fieldMap["partner_username"] = p.PartnerUsername
 	p.fieldMap["title"] = p.Title
 	p.fieldMap["description"] = p.Description
 	p.fieldMap["property_type"] = p.PropertyType
@@ -128,6 +131,7 @@ func (p *property) fillFieldMap() {
 	p.fieldMap["state"] = p.State
 	p.fieldMap["address"] = p.Address
 	p.fieldMap["status"] = p.Status
+	p.fieldMap["deleted"] = p.Deleted
 	p.fieldMap["created_at"] = p.CreatedAt
 	p.fieldMap["updated_at"] = p.UpdatedAt
 }

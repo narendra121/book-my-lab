@@ -27,14 +27,15 @@ func newVisit(db *gorm.DB, opts ...gen.DOOption) visit {
 
 	tableName := _visit.visitDo.TableName()
 	_visit.ALL = field.NewAsterisk(tableName)
-	_visit.ID = field.NewInt32(tableName, "id")
-	_visit.PropertyID = field.NewInt32(tableName, "property_id")
-	_visit.BuyerEmail = field.NewString(tableName, "buyer_email")
+	_visit.ID = field.NewInt64(tableName, "id")
+	_visit.PropertyID = field.NewInt64(tableName, "property_id")
+	_visit.BuyerUsername = field.NewString(tableName, "buyer_username")
 	_visit.ScheduledTime = field.NewTime(tableName, "scheduled_time")
 	_visit.Status = field.NewString(tableName, "status")
 	_visit.RescheduleTime = field.NewTime(tableName, "reschedule_time")
 	_visit.PartnerNote = field.NewString(tableName, "partner_note")
 	_visit.BuyerNote = field.NewString(tableName, "buyer_note")
+	_visit.Deleted = field.NewBool(tableName, "deleted")
 	_visit.CreatedAt = field.NewTime(tableName, "created_at")
 	_visit.UpdatedAt = field.NewTime(tableName, "updated_at")
 
@@ -47,14 +48,15 @@ type visit struct {
 	visitDo
 
 	ALL            field.Asterisk
-	ID             field.Int32
-	PropertyID     field.Int32
-	BuyerEmail     field.String
+	ID             field.Int64
+	PropertyID     field.Int64
+	BuyerUsername  field.String
 	ScheduledTime  field.Time
 	Status         field.String
 	RescheduleTime field.Time
 	PartnerNote    field.String
 	BuyerNote      field.String
+	Deleted        field.Bool
 	CreatedAt      field.Time
 	UpdatedAt      field.Time
 
@@ -73,14 +75,15 @@ func (v visit) As(alias string) *visit {
 
 func (v *visit) updateTableName(table string) *visit {
 	v.ALL = field.NewAsterisk(table)
-	v.ID = field.NewInt32(table, "id")
-	v.PropertyID = field.NewInt32(table, "property_id")
-	v.BuyerEmail = field.NewString(table, "buyer_email")
+	v.ID = field.NewInt64(table, "id")
+	v.PropertyID = field.NewInt64(table, "property_id")
+	v.BuyerUsername = field.NewString(table, "buyer_username")
 	v.ScheduledTime = field.NewTime(table, "scheduled_time")
 	v.Status = field.NewString(table, "status")
 	v.RescheduleTime = field.NewTime(table, "reschedule_time")
 	v.PartnerNote = field.NewString(table, "partner_note")
 	v.BuyerNote = field.NewString(table, "buyer_note")
+	v.Deleted = field.NewBool(table, "deleted")
 	v.CreatedAt = field.NewTime(table, "created_at")
 	v.UpdatedAt = field.NewTime(table, "updated_at")
 
@@ -99,15 +102,16 @@ func (v *visit) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (v *visit) fillFieldMap() {
-	v.fieldMap = make(map[string]field.Expr, 10)
+	v.fieldMap = make(map[string]field.Expr, 11)
 	v.fieldMap["id"] = v.ID
 	v.fieldMap["property_id"] = v.PropertyID
-	v.fieldMap["buyer_email"] = v.BuyerEmail
+	v.fieldMap["buyer_username"] = v.BuyerUsername
 	v.fieldMap["scheduled_time"] = v.ScheduledTime
 	v.fieldMap["status"] = v.Status
 	v.fieldMap["reschedule_time"] = v.RescheduleTime
 	v.fieldMap["partner_note"] = v.PartnerNote
 	v.fieldMap["buyer_note"] = v.BuyerNote
+	v.fieldMap["deleted"] = v.Deleted
 	v.fieldMap["created_at"] = v.CreatedAt
 	v.fieldMap["updated_at"] = v.UpdatedAt
 }

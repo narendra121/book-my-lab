@@ -27,9 +27,10 @@ func newFavorite(db *gorm.DB, opts ...gen.DOOption) favorite {
 
 	tableName := _favorite.favoriteDo.TableName()
 	_favorite.ALL = field.NewAsterisk(tableName)
-	_favorite.ID = field.NewInt32(tableName, "id")
-	_favorite.UserEmail = field.NewString(tableName, "user_email")
-	_favorite.PropertyID = field.NewInt32(tableName, "property_id")
+	_favorite.ID = field.NewInt64(tableName, "id")
+	_favorite.UserUsername = field.NewString(tableName, "user_username")
+	_favorite.PropertyID = field.NewInt64(tableName, "property_id")
+	_favorite.Deleted = field.NewBool(tableName, "deleted")
 	_favorite.CreatedAt = field.NewTime(tableName, "created_at")
 
 	_favorite.fillFieldMap()
@@ -40,11 +41,12 @@ func newFavorite(db *gorm.DB, opts ...gen.DOOption) favorite {
 type favorite struct {
 	favoriteDo
 
-	ALL        field.Asterisk
-	ID         field.Int32
-	UserEmail  field.String
-	PropertyID field.Int32
-	CreatedAt  field.Time
+	ALL          field.Asterisk
+	ID           field.Int64
+	UserUsername field.String
+	PropertyID   field.Int64
+	Deleted      field.Bool
+	CreatedAt    field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -61,9 +63,10 @@ func (f favorite) As(alias string) *favorite {
 
 func (f *favorite) updateTableName(table string) *favorite {
 	f.ALL = field.NewAsterisk(table)
-	f.ID = field.NewInt32(table, "id")
-	f.UserEmail = field.NewString(table, "user_email")
-	f.PropertyID = field.NewInt32(table, "property_id")
+	f.ID = field.NewInt64(table, "id")
+	f.UserUsername = field.NewString(table, "user_username")
+	f.PropertyID = field.NewInt64(table, "property_id")
+	f.Deleted = field.NewBool(table, "deleted")
 	f.CreatedAt = field.NewTime(table, "created_at")
 
 	f.fillFieldMap()
@@ -81,10 +84,11 @@ func (f *favorite) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (f *favorite) fillFieldMap() {
-	f.fieldMap = make(map[string]field.Expr, 4)
+	f.fieldMap = make(map[string]field.Expr, 5)
 	f.fieldMap["id"] = f.ID
-	f.fieldMap["user_email"] = f.UserEmail
+	f.fieldMap["user_username"] = f.UserUsername
 	f.fieldMap["property_id"] = f.PropertyID
+	f.fieldMap["deleted"] = f.Deleted
 	f.fieldMap["created_at"] = f.CreatedAt
 }
 

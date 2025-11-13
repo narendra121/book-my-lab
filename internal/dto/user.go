@@ -30,3 +30,7 @@ type UserRoleReq struct {
 	UserName string `json:"username"`
 	Role     string `gorm:"column:role;type:character varying(100);not null" json:"role"`
 }
+
+type Activate struct {
+	UserName string `json:"username"`
+}
