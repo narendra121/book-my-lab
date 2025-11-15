@@ -65,20 +65,6 @@ func (p *PropertyHandler) UpdateProperty(c *gin.Context) {
 	c.JSON(http.StatusCreated, utils.WriteAppResponse("property updated", nil, nil))
 }
 
-func (p *PropertyHandler) GetPropertyByID(c *gin.Context) {
-	var updateReq *dto.GetProperty
-	if err := c.ShouldBindUri(&updateReq); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
-		return
-	}
-	property, err := p.PropertySvc.GetPropertyByID(updateReq.ID, true)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
-		return
-	}
-	c.JSON(http.StatusFound, utils.WriteAppResponse("", nil, property))
-}
-
 func (p *PropertyHandler) GetFilteredProperties(c *gin.Context) {
 	reqUserName, ok := c.Get(constants.CurrentUserName)
 	if !ok || reqUserName == nil {
@@ -90,11 +76,12 @@ func (p *PropertyHandler) GetFilteredProperties(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid request"), nil))
 		return
 	}
-	excludeSelf := c.DefaultQuery("exclude_user", "false") == "true"
-	city := c.Query("city")
-	state := c.Query("state")
-	status := c.Query("status")
-	properties, err := p.PropertySvc.GetFilteredProperties(userName, excludeSelf, city, state, status, true)
+	var filterReq dto.PropertFilterReq
+	if err := c.ShouldBindQuery(&filterReq); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	properties, err := p.PropertySvc.GetFilteredProperties(userName, filterReq, true)
 	if err != nil || len(properties) == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
 		return
@@ -103,10 +90,32 @@ func (p *PropertyHandler) GetFilteredProperties(c *gin.Context) {
 }
 
 func (p *PropertyHandler) GetAllProperties(c *gin.Context) {
-	properties, err := p.PropertySvc.GetFilteredProperties("", true, "", "", "", true)
+	properties, err := p.PropertySvc.GetFilteredProperties("", dto.PropertFilterReq{}, true)
 	if err != nil || len(properties) == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
 		return
 	}
 	c.JSON(http.StatusFound, utils.WriteAppResponse("", nil, properties))
+}
+func (p *PropertyHandler) DeleteProperty(c *gin.Context) {
+	reqUserName, ok := c.Get(constants.CurrentUserName)
+	if !ok || reqUserName == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid request"), nil))
+		return
+	}
+	userName := reqUserName.(string)
+	if userName == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid request"), nil))
+		return
+	}
+	var delReq dto.GetProperty
+	if err := c.ShouldBindUri(delReq); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	if err := p.PropertySvc.DeletePropertyByID(delReq.ID, true); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, utils.WriteAppResponse("property deleted", nil, ""))
 }

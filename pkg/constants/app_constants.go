@@ -31,18 +31,18 @@ const (
 	CurrentUserName = "curr_username"
 
 	//Property Type
-	House     = "HOUSE"
-	Apartment = "APARTMENT"
-	Condo     = "CONDO"
+	House     = "house"
+	Apartment = "apartment"
+	Condo     = "condo"
 
-	Listed   = "LISTED"
-	UnListed = "UNLISTED"
-	Booked   = "BOOKED"
+	Listed   = "listed"
+	UnListed = "unlisted"
+	Booked   = "booked"
 
-	Pending     = "PENDING"
-	Accepted    = "ACCEPTED"
-	Rejected    = "REJECTED"
-	Rescheduled = "RESCHEDULED"
-	Completed   = "COMPLETED"
-	Cancelled   = "CANCELLED"
+	Pending     = "pending"
+	Accepted    = "accepted"
+	Rejected    = "rejected"
+	Rescheduled = "rescheduled"
+	Completed   = "completed"
+	Cancelled   = "cancelled"
 )

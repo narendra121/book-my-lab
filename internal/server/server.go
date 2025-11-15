@@ -5,6 +5,7 @@ import (
 	"booking.com/internal/handlers/auth"
 	"booking.com/internal/handlers/properties"
 	"booking.com/internal/handlers/user"
+	"booking.com/internal/handlers/visits"
 	"booking.com/internal/server/middleware"
 	"booking.com/internal/svcs"
 	"github.com/gin-gonic/gin"
@@ -30,6 +31,7 @@ func StartHttpTlsServer(cfg *config.AppConfig) error {
 
 		registerUserApp(v1Auth, cfg)
 		registerPropertyApp(v1Auth, cfg)
+		registerVisitsApp(v1Auth, cfg)
 	}
 
 	if err := router.Run(cfg.HttpServer.Address); err != nil {
@@ -64,6 +66,15 @@ func registerPropertyApp(router *gin.RouterGroup, cfg *config.AppConfig) {
 
 	router.POST("/properties", prptyHandler.AddProperties)
 	router.PUT("/properties", prptyHandler.UpdateProperty)
-	router.GET("/properties/:id", prptyHandler.GetPropertyByID)
 	router.GET("/properties", prptyHandler.GetFilteredProperties)
+	router.DELETE("/properties/:id", prptyHandler.GetAllProperties)
+}
+
+func registerVisitsApp(router *gin.RouterGroup, cfg *config.AppConfig) {
+	visitHandler := visits.NewVisitsHandler(&svcs.VisitsSvc{AppCfg: cfg})
+	
+	router.POST("/visits", visitHandler.ScheduleVisit)
+	router.PUT("/visits", visitHandler.UpdateVisit)
+	router.GET("/visits", visitHandler.FilterVisits)
+	router.DELETE("/visits/:id", visitHandler.DeleteVisit)
 }

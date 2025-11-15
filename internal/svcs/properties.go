@@ -94,8 +94,7 @@ func (p *PropertySvc) GetPropertiesByUserName(userName string, withDelFlag bool)
 }
 func (s *PropertySvc) GetFilteredProperties(
 	userName string,
-	excludeSelf bool,
-	city, state, status string,
+	filterReq dto.PropertFilterReq,
 	withDelFlag bool,
 ) ([]*model.Property, error) {
 
@@ -105,7 +104,37 @@ func (s *PropertySvc) GetFilteredProperties(
 
 	pr = pr.LeftJoin(usr, dao.User.Username.EqCol(dao.Property.PartnerUsername))
 
-	if excludeSelf {
+	if filterReq.Id != 0 {
+		pr = pr.Where(dao.Property.ID.Eq(filterReq.Id))
+	}
+	if filterReq.Title != "" {
+		pr = pr.Where(dao.Property.Title.Like("%" + filterReq.Title + "%"))
+	}
+	if filterReq.PartnerName != "" {
+		pr = pr.Where(dao.Property.PartnerUsername.Like("%" + filterReq.PartnerName + "%"))
+	}
+
+	if filterReq.From_Price != 0 && filterReq.To_Price != 0 {
+		pr = pr.Where(dao.Property.Price.Between(filterReq.From_Price, filterReq.To_Price))
+	} else if filterReq.From_Price != 0 {
+		pr = pr.Where(dao.Property.Price.Between(0, filterReq.From_Price))
+	} else if filterReq.To_Price != 0 {
+		pr = pr.Where(dao.Property.Price.Between(0, filterReq.To_Price))
+	}
+
+	if filterReq.City != "" {
+		pr = pr.Where(dao.Property.City.Like("%" + filterReq.City + "%"))
+	}
+
+	if filterReq.State != "" {
+		pr = pr.Where(dao.Property.State.Like("%" + filterReq.State + "%"))
+	}
+
+	if filterReq.Status != "" {
+		pr = pr.Where(dao.Property.Status.Eq(filterReq.Status))
+	}
+
+	if filterReq.ExcludeSelf {
 		pr = pr.Where(dao.Property.PartnerUsername.Neq(userName))
 	}
 	if withDelFlag {
@@ -115,17 +144,10 @@ func (s *PropertySvc) GetFilteredProperties(
 		)
 	}
 
-	if city != "" {
-		pr = pr.Where(dao.Property.City.Like("%" + city + "%"))
-	}
-
-	if state != "" {
-		pr = pr.Where(dao.Property.State.Like("%" + state + "%"))
-	}
-
-	if status != "" {
-		pr = pr.Where(dao.Property.Status.Eq(status))
-	}
-
 	return pr.Find()
+}
+func (p *PropertySvc) DeletePropertyByID(id int64, deleteFlag bool) error {
+	pr := dao.Property.WithContext(context.Background())
+	_, err := pr.Where(dao.Property.ID.Eq(id)).Select(dao.Property.Deleted).Updates(&model.Property{Deleted: deleteFlag})
+	return err
 }

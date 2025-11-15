@@ -29,3 +29,15 @@ type UpdatePropertyReq struct {
 type GetProperty struct {
 	ID int64 `uri:"id" binding:"required"`
 }
+
+type PropertFilterReq struct {
+	Id          int64   `form:"id"`
+	Title       string  `form:"property_name"`
+	PartnerName string  `form:"partner_name"`
+	From_Price  float64 `form:"from_price"`
+	To_Price    float64 `form:"to_price"`
+	City        string  `form:"city"`
+	State       string  `form:"state"`
+	Status      string  `form:"status"`
+	ExcludeSelf bool    `form:"exclude_self"`
+}
