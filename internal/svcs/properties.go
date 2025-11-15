@@ -38,62 +38,94 @@ func (p *PropertySvc) AddProperties(userName string, properties ...dto.AddProper
 	return pr.Create(daoProperties...)
 }
 
-func (p *PropertySvc) UpdateProperty(userName string, property dto.UpdatePropertyReq) error {
-	_, err := p.GetPropertyByID(property.ID)
+func (p *PropertySvc) UpdateProperty(property dto.UpdatePropertyReq) error {
+	_, err := p.GetPropertyByID(property.ID, true)
 	if err != nil {
 		return err
 	}
-	daoProperty := &model.Property{
-		PartnerUsername: userName,
-		Title:           property.Title,
-		Description:     property.Description,
-		PropertyType:    property.PropertyType,
-		Bedrooms:        property.Bedrooms,
-		Bathrooms:       property.Bathrooms,
-		AreaSqft:        property.AreaSqft,
-		Price:           property.Price,
-		City:            property.City,
-		State:           property.State,
-		Address:         property.Address,
-	}
-	pr := dao.Property
-	return pr.Save(daoProperty)
-}
 
-func (p *PropertySvc) GetPropertyByID(id int64) (*model.Property, error) {
-	pr := dao.Property
-	property, err := pr.Where(pr.ID.Eq(id)).First()
+	daoProperty := &model.Property{
+		// ID:           prop.ID,
+		Title:        property.Title,
+		Description:  property.Description,
+		PropertyType: property.PropertyType,
+		Bedrooms:     property.Bedrooms,
+		Bathrooms:    property.Bathrooms,
+		AreaSqft:     property.AreaSqft,
+		Price:        property.Price,
+		City:         property.City,
+		State:        property.State,
+		Address:      property.Address,
+	}
+
+	ctx := context.Background()
+	pr := dao.Property.WithContext(ctx)
+
+	_, err = pr.Where(dao.Property.ID.Eq(property.ID), dao.Property.Deleted.Is(false)).
+		Updates(daoProperty)
+	return err
+}
+func (p *PropertySvc) GetPropertyByID(id int64, withDelFlag bool) (*model.Property, error) {
+	pr := dao.Property.WithContext(context.Background())
+	usr := dao.User
+	pr = pr.Join(usr, usr.Username.EqCol(dao.Property.PartnerUsername))
+	if withDelFlag {
+		pr = pr.Where(dao.Property.Deleted.Is(false), usr.Deleted.Is(false))
+	}
+	property, err := pr.First()
 	if err != nil {
 		return nil, err
 	}
 	return property, nil
 }
-func (p *PropertySvc) GetPropertiesByUserName(userName string) ([]*model.Property, error) {
-	pr := dao.Property
-	properties, err := pr.Where(pr.PartnerUsername.Eq(userName)).Find()
+
+func (p *PropertySvc) GetPropertiesByUserName(userName string, withDelFlag bool) ([]*model.Property, error) {
+	pr := dao.Property.WithContext(context.Background())
+	usr := dao.User
+	pr = pr.Join(usr, usr.Username.EqCol(dao.Property.PartnerUsername))
+	if withDelFlag {
+		pr = pr.Where(dao.Property.Deleted.Is(false), usr.Deleted.Is(false))
+	}
+	properties, err := pr.Find()
 	if err != nil {
 		return nil, err
 	}
 	return properties, nil
 }
-func (s *PropertySvc) GetFilteredProperties(userName string, excludeSelf bool, city, state, status string) ([]*model.Property, error) {
-	q := dao.Property.WithContext(context.Background())
+func (s *PropertySvc) GetFilteredProperties(
+	userName string,
+	excludeSelf bool,
+	city, state, status string,
+	withDelFlag bool,
+) ([]*model.Property, error) {
+
+	ctx := context.Background()
+	pr := dao.Property.WithContext(ctx)
+	usr := dao.User.WithContext(ctx)
+
+	pr = pr.LeftJoin(usr, dao.User.Username.EqCol(dao.Property.PartnerUsername))
 
 	if excludeSelf {
-		q = q.Where(dao.Property.PartnerUsername.Neq(userName))
-	} else {
-		q = q.Where(dao.Property.PartnerUsername.Eq(userName))
+		pr = pr.Where(dao.Property.PartnerUsername.Neq(userName))
+	}
+	if withDelFlag {
+		pr = pr.Where(
+			dao.Property.Deleted.Is(false),
+			dao.User.Deleted.Is(false), // safe now because join is already applied
+		)
 	}
 
 	if city != "" {
-		q = q.Where(dao.Property.City.Like("%" + city + "%"))
-	}
-	if state != "" {
-		q = q.Where(dao.Property.State.Like("%" + state + "%"))
-	}
-	if status != "" {
-		q = q.Where(dao.Property.Status.Eq(status))
+		pr = pr.Where(dao.Property.City.Like("%" + city + "%"))
 	}
 
-	return q.Find()
+	if state != "" {
+		pr = pr.Where(dao.Property.State.Like("%" + state + "%"))
+	}
+
+	if status != "" {
+		pr = pr.Where(dao.Property.Status.Eq(status))
+	}
+
+	return pr.Find()
 }

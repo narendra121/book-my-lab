@@ -7,6 +7,7 @@ import (
 	"booking.com/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DBS struct {
@@ -20,7 +21,9 @@ type DBS struct {
 
 func Connect(cfg config.PostgreSQL) (*gorm.DB, error) {
 	d := Init(cfg)
-	db, err := gorm.Open(postgres.Open(d.connectionString()), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(d.connectionString()), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
 		log.Println("error in Open ", err)
 		return nil, err

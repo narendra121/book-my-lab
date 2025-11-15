@@ -16,7 +16,7 @@ type Visit struct {
 	PropertyID     int64     `gorm:"column:property_id;type:bigint;not null" json:"property_id"`
 	BuyerUsername  string    `gorm:"column:buyer_username;type:character varying(50);not null" json:"buyer_username"`
 	ScheduledTime  time.Time `gorm:"column:scheduled_time;type:timestamp without time zone;not null" json:"scheduled_time"`
-	Status         string    `gorm:"column:status;type:visit_status_enum;default:PENDING" json:"status"`
+	Status         string    `gorm:"column:status;type:character varying(100)" json:"status"`
 	RescheduleTime time.Time `gorm:"column:reschedule_time;type:timestamp without time zone" json:"reschedule_time"`
 	PartnerNote    string    `gorm:"column:partner_note;type:text" json:"partner_note"`
 	BuyerNote      string    `gorm:"column:buyer_note;type:text" json:"buyer_note"`

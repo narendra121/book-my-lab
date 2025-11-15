@@ -13,7 +13,7 @@ type AddPropertyReq struct {
 	Address      string  `gorm:"column:address;type:text" json:"address"`
 }
 type UpdatePropertyReq struct {
-	ID           int64   `json:"id"`
+	ID           int64   `gorm:"column:id;type:bigint;primaryKey;autoIncrement:true" json:"id"`
 	Title        string  `gorm:"column:title;type:character varying(200);not null" json:"title"`
 	Description  string  `gorm:"column:description;type:text" json:"description"`
 	PropertyType string  `gorm:"column:property_type;type:property_type_enum;not null" json:"property_type"`

@@ -155,12 +155,15 @@ func (a *AuthSvc) getAccessAndRefreshTokens(user *model.User, userSvc *UserSvc) 
 	return token, refreshToken, nil
 }
 func (a *AuthSvc) ActivateUser(userName string, usrSvc *UserSvc) error {
-	user, err := usrSvc.GetUserWithEmailOrPhone(userName, userName, true)
+	user, err := usrSvc.GetUserWithEmailOrPhone(userName, userName, false)
 	if err != nil {
 		return err
 	}
 	if user == nil {
-		return utils.ErrUserAlreadyExistsWithEmailOrPhone
+		return utils.ErrUserNotFound
+	}
+	if !user.Deleted {
+		return utils.ErrUserAlreadyActivated
 	}
 	return usrSvc.UpdateDelFlag(user.Username, false)
 }

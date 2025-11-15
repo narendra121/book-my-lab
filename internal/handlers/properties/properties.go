@@ -57,7 +57,7 @@ func (p *PropertyHandler) UpdateProperty(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", errors.New("invalid request"), nil))
 		return
 	}
-	err := p.PropertySvc.UpdateProperty(userName, propertiesReq)
+	err := p.PropertySvc.UpdateProperty(propertiesReq)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.WriteAppResponse("", err, nil))
 		return
@@ -71,7 +71,7 @@ func (p *PropertyHandler) GetPropertyByID(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.WriteAppResponse("", err, nil))
 		return
 	}
-	property, err := p.PropertySvc.GetPropertyByID(updateReq.ID)
+	property, err := p.PropertySvc.GetPropertyByID(updateReq.ID, true)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
 		return
@@ -94,7 +94,7 @@ func (p *PropertyHandler) GetFilteredProperties(c *gin.Context) {
 	city := c.Query("city")
 	state := c.Query("state")
 	status := c.Query("status")
-	properties, err := p.PropertySvc.GetFilteredProperties(userName, excludeSelf, city, state, status)
+	properties, err := p.PropertySvc.GetFilteredProperties(userName, excludeSelf, city, state, status, true)
 	if err != nil || len(properties) == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
 		return
@@ -103,7 +103,7 @@ func (p *PropertyHandler) GetFilteredProperties(c *gin.Context) {
 }
 
 func (p *PropertyHandler) GetAllProperties(c *gin.Context) {
-	properties, err := p.PropertySvc.GetFilteredProperties("", true, "", "", "")
+	properties, err := p.PropertySvc.GetFilteredProperties("", true, "", "", "", true)
 	if err != nil || len(properties) == 0 {
 		c.AbortWithStatusJSON(http.StatusNotFound, utils.WriteAppResponse("", err, nil))
 		return

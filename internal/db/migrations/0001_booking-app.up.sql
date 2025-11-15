@@ -3,24 +3,6 @@
 -- ENUMS, FUNCTIONS, AND TABLE CREATION
 -- ==========================================================
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'property_type_enum') THEN
-        CREATE TYPE property_type_enum AS ENUM ('HOUSE', 'APARTMENT', 'CONDO');
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'property_status_enum') THEN
-        CREATE TYPE property_status_enum AS ENUM ('LISTED', 'UNLISTED', 'BOOKED');
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'visit_status_enum') THEN
-        CREATE TYPE visit_status_enum AS ENUM (
-            'PENDING', 'ACCEPTED', 'REJECTED', 'RESCHEDULED', 'COMPLETED', 'CANCELLED'
-        );
-    END IF;
-END$$;
-
-
 -- ==========================================================
 -- FUNCTION: Auto-update "updated_at" timestamps
 -- ==========================================================
@@ -34,7 +16,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- ==========================================================
--- USERS TABLE (username = PRIMARY KEY)
+-- USERS TABLE
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS users (
     username            VARCHAR(50) PRIMARY KEY,
@@ -110,7 +92,7 @@ CREATE TABLE IF NOT EXISTS properties (
     partner_username   VARCHAR(50) NOT NULL,
     title              VARCHAR(200) NOT NULL,
     description        TEXT,
-    property_type      property_type_enum NOT NULL,
+    property_type      VARCHAR(50) NOT NULL,
     bedrooms           INT,
     bathrooms          INT,
     area_sqft          NUMERIC(10,2),
@@ -118,7 +100,7 @@ CREATE TABLE IF NOT EXISTS properties (
     city               VARCHAR(100),
     state              VARCHAR(100),
     address            TEXT,
-    status             property_status_enum DEFAULT 'LISTED',
+    status             VARCHAR(50) NOT NULL,
     deleted            BOOLEAN DEFAULT false,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -171,7 +153,7 @@ CREATE TABLE IF NOT EXISTS visits (
     property_id       BIGINT NOT NULL,
     buyer_username    VARCHAR(50) NOT NULL,
     scheduled_time    TIMESTAMP NOT NULL,
-    status            visit_status_enum DEFAULT 'PENDING',
+    status            VARCHAR(100),
     reschedule_time   TIMESTAMP NULL,
     partner_note      TEXT,
     buyer_note        TEXT,
@@ -209,36 +191,6 @@ CREATE TABLE IF NOT EXISTS ratings (
     CONSTRAINT fk_ratings_partner FOREIGN KEY (partner_username)
         REFERENCES users(username) ON DELETE CASCADE
 );
-
-
--- ==========================================================
--- FUNCTION: Cascade user soft-delete
--- ==========================================================
-CREATE OR REPLACE FUNCTION cascade_user_soft_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.deleted = true AND OLD.deleted = false THEN
-        UPDATE properties SET deleted = true WHERE partner_username = NEW.username;
-        UPDATE favorites SET deleted = true WHERE user_username = NEW.username;
-        UPDATE visits SET deleted = true WHERE buyer_username = NEW.username;
-        UPDATE ratings SET deleted = true
-        WHERE buyer_username = NEW.username OR partner_username = NEW.username;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-
--- ==========================================================
--- TRIGGER: Cascade user soft-delete
--- ==========================================================
-DROP TRIGGER IF EXISTS users_cascade_soft_delete ON users;
-
-CREATE TRIGGER users_cascade_soft_delete
-AFTER UPDATE ON users
-FOR EACH ROW
-WHEN (OLD.deleted IS DISTINCT FROM NEW.deleted)
-EXECUTE FUNCTION cascade_user_soft_delete();
 
 
 -- ==========================================================
